@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DBSS OS | Advanced CRM Telemetry</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg-dark: #0D1B2A; --glass-bg: rgba(18, 18, 18, 0.6); --glass-border: rgba(255, 255, 255, 0.1); --text-main: #FFFFFF; --accent-blue: #007BFF; --accent-lime: #39FF14; --accent-orange: #FFA500; --accent-purple: #9D4EDD; --accent-red: #FF3B30; --accent-green: #25D366; --accent-teal: #17A2B8; --accent-gray: #6C757D;}
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-dark); color: var(--text-main); margin: 0; padding: 0 0 90px 0; box-sizing: border-box; }
+        
+        .top-header { padding: 15px 20px; backdrop-filter: blur(10px); border-bottom: 1px solid var(--glass-border); position: sticky; top: 0; z-index: 100; display: flex; justify-content: space-between; align-items: center; background: rgba(13, 27, 42, 0.8); }
+        .module-title { font-weight: 700; font-size: 16px; color: var(--accent-blue); letter-spacing: 1px;}
+        .container { padding: 15px; max-width: 800px; margin: 0 auto; }
+        
+        .tab-menu { display: flex; overflow-x: auto; gap: 10px; margin-bottom: 20px; padding-bottom: 10px; -ms-overflow-style: none; scrollbar-width: none; }
+        .tab-menu::-webkit-scrollbar { display: none; }
+        .tab-btn { background: var(--glass-bg); border: 1px solid var(--glass-border); color: #A0AEC0; padding: 10px 20px; border-radius: 8px; cursor: pointer; white-space: nowrap; font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; transition: all 0.2s;}
+        .tab-btn.active { background: var(--accent-blue); color: #fff; border-color: var(--accent-blue); }
+        
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 15px; }
+        .stat-card { background: rgba(255, 255, 255, 0.03); border: 1px solid var(--glass-border); padding: 10px; border-radius: 8px; text-align: center; }
+        .stat-value { font-size: 18px; font-weight: bold; color: var(--text-main); font-family: 'JetBrains Mono', monospace; }
+        .stat-label { font-size: 9px; color: #A0AEC0; text-transform: uppercase; margin-top: 5px; font-weight: bold;}
+
+        .glass-panel { background: var(--glass-bg); backdrop-filter: blur(12px); border: 1px solid var(--glass-border); border-radius: 12px; padding: 15px; margin-bottom: 15px; }
+        .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;}
+        h2 { margin: 0; font-size: 14px; color: var(--accent-blue); letter-spacing: 1px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; }
+
+        input, textarea { 
+            width: 100%; padding: 12px; margin-bottom: 5px; 
+            background: rgba(18, 18, 18, 0.4); backdrop-filter: blur(10px); 
+            border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 8px; color: var(--text-main); 
+            box-sizing: border-box; font-family: 'Inter', sans-serif; font-size: 14px; transition: all 0.3s ease; color-scheme: dark;
+        }
+        textarea { resize: vertical; min-height: 80px; margin-bottom: 12px;}
+        input:focus, textarea:focus { outline: none; border-color: var(--accent-blue); box-shadow: 0 0 15px rgba(0, 123, 255, 0.2); }
+        .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;}
+
+        /* QUICK DATE PILLS */
+        .quick-date-wrapper { display: flex; gap: 5px; margin-bottom: 12px; }
+        .date-pill { 
+            flex: 1; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); 
+            color: #A0AEC0; font-size: 10px; font-weight: bold; font-family: 'JetBrains Mono', monospace; 
+            padding: 5px 0; border-radius: 4px; cursor: pointer; transition: 0.2s; 
+        }
+        .date-pill:hover, .date-pill:active { background: rgba(0,123,255,0.2); border-color: var(--accent-blue); color: #fff; }
+
+        /* Custom Liquid Dropdowns */
+        .liquid-select-wrapper { position: relative; width: 100%; margin-bottom: 12px; font-family: 'Inter', sans-serif; }
+        .liquid-header { 
+            width: 100%; padding: 12px 15px; background: rgba(18, 18, 18, 0.4); backdrop-filter: blur(10px); 
+            border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 8px; color: var(--accent-lime); font-weight: 600; font-size: 14px;
+            cursor: pointer; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box; transition: all 0.3s ease;
+        }
+        .liquid-select-wrapper.open .liquid-header, .liquid-header:hover { border-color: var(--accent-blue); box-shadow: 0 0 15px rgba(0, 123, 255, 0.2); }
+        .liquid-list { 
+            position: absolute; top: 100%; left: 0; width: 100%; background: rgba(13, 27, 42, 0.95); backdrop-filter: blur(16px); 
+            border: 1px solid var(--accent-blue); border-radius: 8px; margin-top: 5px; max-height: 0; overflow: hidden; opacity: 0;
+            transition: max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 100;
+        }
+        .liquid-select-wrapper.open .liquid-list { max-height: 250px; overflow-y: auto; opacity: 1; }
+        
+        .liquid-item { 
+            padding: 12px 15px; color: var(--text-main); font-size: 13px; cursor: pointer; position: relative; overflow: hidden; z-index: 1;
+            border-bottom: 1px solid rgba(255,255,255,0.05); transition: color 0.3s;
+        }
+        .liquid-item:last-child { border-bottom: none; }
+        .liquid-item::before { 
+            content: ''; position: absolute; bottom: -100%; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 123, 255, 0.8); z-index: -1; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); border-radius: 50% 50% 0 0;
+        }
+        .liquid-item:hover::before, .liquid-item.clicked::before { bottom: 0; border-radius: 0; }
+        .liquid-item:hover, .liquid-item.clicked { color: #fff; font-weight: 600; }
+        .liquid-item.selected { color: var(--accent-lime); background: rgba(255,255,255,0.05); }
+
+        /* ANIMASI DIAGONAL BUTTONS */
+        .btn-diagonal { 
+            width: 100%; padding: 15px; border-radius: 8px; font-weight: 700; cursor: pointer; letter-spacing: 1px; 
+            font-family: 'JetBrains Mono', monospace; position: relative; overflow: hidden; z-index: 1; 
+            background: rgba(0, 123, 255, 0.1); border: 1px solid var(--accent-blue); color: #fff; transition: 0.3s; 
+        }
+        .btn-diagonal::before { 
+            content: ''; position: absolute; top: 0; left: -150%; width: 150%; height: 100%; 
+            background: var(--accent-blue); z-index: -1; transform: skewX(-30deg); transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
+        }
+        .btn-diagonal:hover::before, .btn-diagonal:active::before { left: -20%; }
+        
+        .btn-diagonal-reset { 
+            width: 100%; padding: 15px; border-radius: 8px; font-weight: 700; cursor: pointer; letter-spacing: 1px; 
+            font-family: 'JetBrains Mono', monospace; position: relative; overflow: hidden; z-index: 1; 
+            margin-top: 10px; background: transparent; border: 1px dashed #A0AEC0; color: #A0AEC0; transition: 0.3s; 
+        }
+        .btn-diagonal-reset::before { 
+            content: ''; position: absolute; top: 0; left: -150%; width: 150%; height: 100%; 
+            background: rgba(160, 174, 192, 0.2); z-index: -1; transform: skewX(-30deg); transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
+        }
+        .btn-diagonal-reset:hover::before, .btn-diagonal-reset:active::before { left: -20%; }
+        .btn-diagonal-reset:hover { color: #fff; border-style: solid; border-color: #fff;}
+
+        /* WARNING CUSTOM ALERT BOX */
+        .custom-alert-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 9999; opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+        }
+        .custom-alert-overlay.show { opacity: 1; pointer-events: auto; }
+        .custom-alert-box {
+            background: rgba(18, 18, 18, 0.85); border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px; width: 90%; max-width: 400px; overflow: hidden;
+            transform: translateY(20px) scale(0.95); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5), inset 0 0 10px rgba(255,255,255,0.05);
+        }
+        .custom-alert-overlay.show .custom-alert-box { transform: translateY(0) scale(1); }
+        .warning-stripes { height: 8px; width: 100%; background: repeating-linear-gradient(45deg, #FFA500, #FFA500 10px, #000 10px, #000 20px); border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+        .alert-content { padding: 25px 20px; text-align: center; }
+        .alert-title { color: var(--accent-orange); font-family: 'JetBrains Mono', monospace; font-size: 16px; margin-bottom: 10px; font-weight: bold; letter-spacing: 1px;}
+        .alert-message { color: #fff; font-size: 13px; margin-bottom: 25px; line-height: 1.5; }
+        .alert-actions { display: flex; gap: 10px; justify-content: center; }
+        .btn-alert { padding: 12px 20px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; font-family: 'JetBrains Mono', monospace; font-size: 12px; flex: 1;}
+        .btn-alert-confirm { background: var(--accent-orange); color: #000; transition: background 0.2s;}
+        .btn-alert-confirm:hover { background: #FF8C00; }
+        .btn-alert-cancel { background: transparent; border: 1px solid #A0AEC0; color: #A0AEC0; transition: all 0.2s;}
+        .btn-alert-cancel:hover { color: #fff; border-color: #fff; background: rgba(255,255,255,0.1); }
+
+        /* TOAST NOTIFICATION */
+        .toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 10000; display: flex; flex-direction: column; gap: 10px; width: 90%; max-width: 400px; pointer-events: none; }
+        .toast { 
+            background: rgba(18, 18, 18, 0.85); backdrop-filter: blur(12px); border-radius: 8px; padding: 15px 20px; 
+            color: #fff; font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); opacity: 0; transform: translateY(-20px); 
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); display: flex; align-items: center; gap: 10px;
+        }
+        .toast.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
+        .toast-icon { font-size: 18px; }
+        .toast-success { border-left: 4px solid var(--accent-lime); }
+        .toast-warning { border-left: 4px solid var(--accent-orange); }
+        .toast-error { border-left: 4px solid var(--accent-red); }
+        .toast-telegram { border-left: 4px solid #0088cc; }
+
+        /* Table */
+        .table-wrapper { overflow-x: auto; margin-bottom: 10px; }
+        table { width: 100%; border-collapse: collapse; font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+        th, td { text-align: left; padding: 10px 5px; border-bottom: 1px solid var(--glass-border); white-space: nowrap; vertical-align: top;}
+        th { color: #A0AEC0; font-weight: normal; }
+        .row-urgent { border-left: 3px solid var(--accent-orange); background: rgba(255, 165, 0, 0.08); }
+        
+        .btn-sm { border: none; border-radius: 4px; padding: 5px 8px; cursor: pointer; font-size: 10px; margin-right: 4px; margin-bottom: 4px; font-weight: bold; font-family: 'JetBrains Mono', monospace;}
+        .delete-btn { background: rgba(255,59,48,0.2); color: var(--accent-red); }
+        .action-btn { background: rgba(0,123,255,0.2); color: var(--accent-blue); }
+        .quote-btn { background: rgba(57,255,20,0.2); color: var(--accent-lime); }
+        .wa-btn { background: rgba(37,211,102,0.2); color: var(--accent-green); }
+        .map-btn { background: rgba(255,165,0,0.2); color: var(--accent-orange); }
+
+        .badge { padding: 3px 6px; border-radius: 4px; font-size: 9px; font-weight: bold; display: inline-block; margin-top: 4px; }
+        .badge-type { background: rgba(255, 255, 255, 0.1); color: #FFF; }
+        .badge-client { background: rgba(0,123,255,0.2); color: var(--accent-blue); }
+        .badge-supplier { background: rgba(157,78,221,0.2); color: var(--accent-purple); }
+        .status-new-lead { background: rgba(0, 123, 255, 0.2); color: var(--accent-blue); }
+        .status-follow-up { background: rgba(255, 165, 0, 0.2); color: var(--accent-orange); }
+        .status-quotation-sent { background: rgba(157, 78, 221, 0.2); color: var(--accent-purple); }
+        .status-negotiation { background: rgba(23, 162, 184, 0.2); color: var(--accent-teal); }
+        .status-k-i-v { background: rgba(108, 117, 125, 0.2); color: var(--accent-gray); }
+        .status-closed-win { background: rgba(57, 255, 20, 0.2); color: var(--accent-lime); }
+        .status-closed-lost { background: rgba(255, 59, 48, 0.2); color: var(--accent-red); }
+
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; height: 70px; background: rgba(13, 27, 42, 0.9); backdrop-filter: blur(15px); border-top: 1px solid var(--glass-border); display: flex; justify-content: space-around; align-items: center; z-index: 1000; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; color: #A0AEC0; text-decoration: none; font-size: 10px; gap: 5px; }
+        .nav-item.active { color: var(--accent-blue); }
+        .nav-item svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2; }
+    </style>
+</head>
+<body>
+
+    <div id="toastContainer" class="toast-container"></div>
+
+    <header class="top-header">
+        <div class="module-title">CRM & DIRECTORY</div>
+        <div style="font-size: 10px; color: #0088cc; font-family: 'JetBrains Mono'; font-weight:bold;">DBSS_TELEMETRY_V6</div>
+    </header>
+
+    <div class="container">
+        <div class="tab-menu">
+            <button class="tab-btn active">CRM</button>
+            <button class="tab-btn" onclick="window.location.href='sebutharga.html'">QUOTATION</button>
+            <button class="tab-btn" onclick="window.location.href='invoice.html'">INVOICE</button>
+            <button class="tab-btn" onclick="window.location.href='po.html'">P. ORDER</button>
+            <button class="tab-btn" onclick="window.location.href='do.html'">DELIVERY</button>
+            <button class="tab-btn" onclick="window.location.href='receipt.html'">RECEIPT</button>
+            <button class="tab-btn" onclick="window.location.href='inventory.html'">INVENTORY</button>
+            <button class="tab-btn" onclick="window.location.href='settings.html'">SETTINGS</button>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="statClients" style="color: var(--accent-blue);">0</div>
+                <div class="stat-label">Pelanggan</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="statActive" style="color: var(--accent-lime);">0</div>
+                <div class="stat-label">Prospek Aktif</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="statSuppliers" style="color: var(--accent-purple);">0</div>
+                <div class="stat-label">Rangkaian B2B</div>
+            </div>
+        </div>
+
+        <div class="glass-panel" style="border-left: 3px solid var(--accent-blue);">
+            <div class="panel-header">
+                <h2>1. Daftar Entiti Baru</h2>
+            </div>
+            
+            <input type="hidden" id="contactId" value="">
+            
+            <label style="font-size:10px; color:#A0AEC0;">JENIS KONTAK</label>
+            <select id="contactType" onchange="toggleAssessmentFields()">
+                <option value="CLIENT">PELANGGAN (CLIENT)</option>
+                <option value="SUPPLIER">PEMBEKAL (SUPPLIER)</option>
+                <option value="SUB-CONTRACTOR">SUB-CONTRACTOR</option>
+                <option value="MAINTENANCE">MAINTENANCE (PENYELENGGARAAN)</option>
+                <option value="OTHERS">OTHERS (LAIN-LAIN)</option>
+            </select>
+
+            <label style="font-size:10px; color:#A0AEC0;">NAMA / SYARIKAT</label>
+            <input type="text" id="contactName" placeholder="Contoh: Ali bin Abu / RisingNet Sdn Bhd">
+            
+            <div class="input-grid" style="margin-bottom: 0;">
+                <div>
+                    <label style="font-size:10px; color:#A0AEC0;">NO. TELEFON</label>
+                    <input type="tel" id="contactPhone" placeholder="0123456789">
+                </div>
+                <div id="leadBox">
+                    <label style="font-size:10px; color:#A0AEC0;">SUMBER (LEAD)</label>
+                    <select id="leadSource">
+                        <option value="WhatsApp">WhatsApp</option>
+                        <option value="Facebook / FB Ads">Facebook / FB Ads</option>
+                        <option value="Tiktok">Tiktok</option>
+                        <option value="Google Maps / MyBusiness">Google Maps / MyBusiness</option>
+                        <option value="Referral">Referral (Rujukan)</option>
+                        <option value="Walk-in">Walk-in</option>
+                        <option value="Existing Client">Existing Client</option>
+                        <option value="Others">Others</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="input-grid" id="pipelineBox" style="margin-top: 12px;">
+                <div>
+                    <label style="font-size:10px; color:#A0AEC0;">STATUS (PIPELINE)</label>
+                    <select id="contactStatus">
+                        <option value="NEW LEAD">NEW LEAD (Prospek Baru)</option>
+                        <option value="FOLLOW UP">FOLLOW UP (Tindakan Susulan)</option>
+                        <option value="QUOTATION SENT">QUOTATION SENT (Sebutharga Hantar)</option>
+                        <option value="NEGOTIATION">NEGOTIATION (Rundingan)</option>
+                        <option value="K.I.V">K.I.V (Tangguh/Hold)</option>
+                        <option value="CLOSED WIN">CLOSED WIN (Berjaya)</option>
+                        <option value="CLOSED LOST">CLOSED LOST (Batal)</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size:10px; color:#A0AEC0;">TARIKH FOLLOW-UP</label>
+                    <input type="date" id="followUpDate">
+                    <div class="quick-date-wrapper">
+                        <button type="button" class="date-pill" onclick="setQuickDate(1)">+1H</button>
+                        <button type="button" class="date-pill" onclick="setQuickDate(3)">+3H</button>
+                        <button type="button" class="date-pill" onclick="setQuickDate(7)">+1M</button>
+                    </div>
+                </div>
+            </div>
+            
+            <label style="font-size:10px; color:#A0AEC0;">ALAMAT PENUH</label>
+            <textarea id="contactAddress" placeholder="Alamat Penuh (Untuk Quotation / Invois / PO / Maps)"></textarea>
+            
+            <div id="assessmentSection">
+                <div class="input-grid" style="margin-bottom: 0;">
+                    <div>
+                        <label style="font-size:10px; color:#A0AEC0;">JENIS SISTEM</label>
+                        <select id="systemType">
+                            <option value="CCTV System">CCTV System</option>
+                            <option value="Alarm System">Alarm System</option>
+                            <option value="Autogate System">Autogate System</option>
+                            <option value="Door Access / Smart Lock">Door Access / Smart Lock</option>
+                            <option value="Networking / WiFi">Networking / WiFi</option>
+                            <option value="Intercom / PABX">Intercom / PABX</option>
+                            <option value="Mixed">Mixed (Gabungan)</option>
+                            <option value="Others">Others</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size:10px; color:#A0AEC0;">KONDISI TAPAK</label>
+                        <select id="siteCondition">
+                            <option value="Surface Wiring">Surface Wiring (PVC Pipe)</option>
+                            <option value="Conceal Wiring">Conceal Wiring (Tanam)</option>
+                            <option value="Roof / Ceiling">Roof / Ceiling (Bumbung)</option>
+                            <option value="Underground">Underground (Bawah Tanah)</option>
+                            <option value="Wireless / No Wiring">Wireless / No Wiring</option>
+                            <option value="Mixed Condition">Mixed Condition</option>
+                            <option value="To Be Confirmed">To Be Confirmed</option>
+                        </select>
+                    </div>
+                </div>
+                <label style="font-size:10px; color:#A0AEC0;">NOTA TAPAK</label>
+                <textarea id="siteNotes" placeholder="Nota pemerhatian tapak (Rujukan internal shj)"></textarea>
+            </div>
+
+            <button class="btn-diagonal" onclick="saveContact()">SIMPAN KE PANGKALAN DATA</button>
+            <button class="btn-diagonal-reset" onclick="resetForm()">KOSONGKAN BORANG</button>
+        </div>
+
+        <div class="glass-panel">
+            <div class="panel-header" style="flex-wrap: wrap; gap: 10px;">
+                <h2>2. Pangkalan Data CRM</h2>
+                <button onclick="exportCSV()" class="tab-btn" style="padding: 5px 10px; color: var(--accent-lime); border-color: var(--accent-lime);">💾 EKSPORT CSV</button>
+            </div>
+            
+            <input type="text" id="searchInput" placeholder="🔍 Cari nama / no tel..." onkeyup="renderContacts()">
+            
+            <div class="table-wrapper">
+                <table id="crmTable">
+                    <thead>
+                        <tr>
+                            <th>Profil & Status</th>
+                            <th>Info & Tindakan</th>
+                        </tr>
+                    </thead>
+                    <tbody id="crmBody">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="customModalOverlay" class="custom-alert-overlay">
+        <div class="custom-alert-box">
+            <div class="warning-stripes"></div>
+            <div class="alert-content">
+                <div id="customModalTitle" class="alert-title">AMARAN SISTEM</div>
+                <div id="customModalMessage" class="alert-message">Mesej di sini</div>
+                <div class="alert-actions" id="customModalActions"></div>
+            </div>
+        </div>
+    </div>
+
+    <nav class="bottom-nav">
+        <a href="dashboard.html" class="nav-item">
+            <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" fill="none" stroke="currentColor" stroke-width="2"></path></svg>
+            Command
+        </a>
+        <a href="crm.html" class="nav-item active">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="none" stroke="currentColor" stroke-width="2"></path><polyline points="14 2 14 8 20 8" fill="none" stroke="currentColor" stroke-width="2"></polyline></svg>
+            Workspace
+        </a>
+        <a href="#" class="nav-item">
+            <svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2" fill="none" stroke="currentColor" stroke-width="2"></path></svg>
+            Report
+        </a>
+    </nav>
+
+    <script>
+        let crmDatabase = [];
+        let systemConfig = {};
+
+        window.onload = function() {
+            setupLiquidSelects();
+            const storedData = localStorage.getItem('dbss_crm_database');
+            if(storedData) crmDatabase = JSON.parse(storedData);
+            
+            // Dapatkan tetapan API Telegram
+            const storedConfig = localStorage.getItem('dbss_business_profile');
+            if(storedConfig) systemConfig = JSON.parse(storedConfig);
+
+            renderContacts();
+            checkUrgentFollowUps(); // RADAR SCAN ON LOAD
+        };
+
+        // ==========================================
+        // ENJIN TELEMETRI TELEGRAM
+        // ==========================================
+        async function sendTelegramAlert(message, isAudit = false) {
+            const botToken = systemConfig.tgBotToken;
+            let chatId = isAudit ? systemConfig.tgAuditChatId : systemConfig.tgGroupChatId;
+            
+            // Jika Audit Chat kosong, hantar ke Group Chat biasa (Fallback)
+            if (!chatId && isAudit) chatId = systemConfig.tgGroupChatId;
+            
+            if (!botToken || !chatId) {
+                console.warn("Telemetri offline: Token/Chat ID Telegram tidak dijumpai di Tetapan.");
+                return;
+            }
+
+            const url = `https://api.telegram.org/bot${botToken}/sendMessage`;
+            try {
+                await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ chat_id: chatId, text: message, parse_mode: 'Markdown' })
+                });
+                showToast("Berjaya dipancarkan ke Telegram.", "telegram");
+            } catch (e) {
+                console.error("SYS.ERR: Gagal ping ke Telegram.", e);
+            }
+        }
+
+
+        // ==========================================
+        // TOAST & MODAL UI
+        // ==========================================
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            let icon = '✅';
+            if(type === 'warning') icon = '⚠️';
+            if(type === 'error') icon = '❌';
+            if(type === 'telegram') icon = '✈️';
+            toast.innerHTML = `<span class="toast-icon">${icon}</span> <span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3500);
+        }
+
+        function setQuickDate(days) {
+            const date = new Date();
+            date.setDate(date.getDate() + days);
+            document.getElementById('followUpDate').value = date.toISOString().split('T')[0];
+            showToast(`Tarikh diset ke ${days === 1 ? 'Esok' : days === 3 ? '3 Hari lagi' : '1 Minggu lagi'}.`, 'success');
+        }
+
+        function showCustomAlert(title, message) {
+            document.getElementById('customModalTitle').innerText = title;
+            document.getElementById('customModalTitle').style.color = 'var(--accent-red)';
+            document.getElementById('customModalMessage').innerText = message;
+            const actions = document.getElementById('customModalActions');
+            actions.innerHTML = `<button class="btn-alert btn-alert-cancel" onclick="closeCustomModal()">TUTUP</button>`;
+            document.getElementById('customModalOverlay').classList.add('show');
+        }
+
+        function showCustomConfirm(title, message, confirmCallback) {
+            document.getElementById('customModalTitle').innerText = title;
+            document.getElementById('customModalTitle').style.color = 'var(--accent-orange)';
+            document.getElementById('customModalMessage').innerText = message;
+            const actions = document.getElementById('customModalActions');
+            actions.innerHTML = '';
+            const btnCancel = document.createElement('button');
+            btnCancel.className = 'btn-alert btn-alert-cancel'; btnCancel.innerText = 'BATAL'; btnCancel.onclick = closeCustomModal;
+            const btnConfirm = document.createElement('button');
+            btnConfirm.className = 'btn-alert btn-alert-confirm'; btnConfirm.innerText = 'TERUSKAN';
+            btnConfirm.onclick = () => { closeCustomModal(); confirmCallback(); };
+            actions.appendChild(btnCancel); actions.appendChild(btnConfirm);
+            document.getElementById('customModalOverlay').classList.add('show');
+        }
+        function closeCustomModal() { document.getElementById('customModalOverlay').classList.remove('show'); }
+
+
+        // ==========================================
+        // LIQUID SELECT ENGINE
+        // ==========================================
+        function setupLiquidSelects() {
+            document.querySelectorAll('select').forEach(select => {
+                select.style.display = 'none'; 
+                const wrapper = document.createElement('div'); wrapper.className = 'liquid-select-wrapper'; wrapper.id = 'liquid-wrap-' + select.id;
+                const header = document.createElement('div'); header.className = 'liquid-header';
+                header.innerHTML = `<span>${select.options[select.selectedIndex].text}</span><span style="font-size:10px;">▼</span>`;
+                const list = document.createElement('div'); list.className = 'liquid-list';
+                
+                Array.from(select.options).forEach((opt, index) => {
+                    const item = document.createElement('div'); item.className = 'liquid-item';
+                    if(index === select.selectedIndex) item.classList.add('selected');
+                    item.innerText = opt.text;
+                    item.addEventListener('click', (e) => {
+                        e.stopPropagation(); item.classList.add('clicked');
+                        setTimeout(() => {
+                            select.value = opt.value; select.dispatchEvent(new Event('change'));
+                            header.querySelector('span').innerText = opt.text;
+                            wrapper.classList.remove('open'); wrapper.style.zIndex = "1";
+                            list.querySelectorAll('.liquid-item').forEach(i => i.classList.remove('selected', 'clicked'));
+                            item.classList.add('selected');
+                        }, 250);
+                    });
+                    list.appendChild(item);
+                });
+                header.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    document.querySelectorAll('.liquid-select-wrapper').forEach(w => { if(w !== wrapper) { w.classList.remove('open'); w.style.zIndex = "1"; } });
+                    wrapper.classList.toggle('open'); wrapper.style.zIndex = wrapper.classList.contains('open') ? "99" : "1";
+                });
+                wrapper.appendChild(header); wrapper.appendChild(list); select.parentNode.insertBefore(wrapper, select.nextSibling);
+            });
+            document.addEventListener('click', () => { document.querySelectorAll('.liquid-select-wrapper').forEach(w => { w.classList.remove('open'); w.style.zIndex = "1"; }); });
+        }
+        function syncLiquidSelect(selectId) {
+            const select = document.getElementById(selectId); const wrapper = document.getElementById('liquid-wrap-' + selectId);
+            if(select && wrapper) {
+                wrapper.querySelector('.liquid-header span').innerText = select.options[select.selectedIndex].text;
+                wrapper.querySelectorAll('.liquid-item').forEach((item, idx) => { item.classList.toggle('selected', idx === select.selectedIndex); });
+            }
+        }
+
+
+        // ==========================================
+        // CRM CORE LOGIC
+        // ==========================================
+        function generateUUID() { return 'C-' + Date.now().toString(36) + Math.random().toString(36).substring(2, 6).toUpperCase(); }
+
+        function toggleAssessmentFields() {
+            const type = document.getElementById('contactType').value;
+            const isB2B = ['SUPPLIER', 'SUB-CONTRACTOR', 'OTHERS'].includes(type);
+            document.getElementById('assessmentSection').style.display = isB2B ? 'none' : 'block';
+            document.getElementById('leadBox').style.display = isB2B ? 'none' : 'block';
+            document.getElementById('pipelineBox').style.display = isB2B ? 'none' : 'grid';
+        }
+
+        function saveContact() {
+            const name = document.getElementById('contactName').value;
+            if(!name) return showToast("Sila masukkan Nama/Syarikat!", "error");
+
+            let id = document.getElementById('contactId').value;
+            const isNew = id === "";
+            if (isNew) id = generateUUID();
+
+            const contactType = document.getElementById('contactType').value;
+            const isB2B = ['SUPPLIER', 'SUB-CONTRACTOR', 'OTHERS'].includes(contactType);
+
+            const contactData = {
+                id: id, type: contactType, name: name, phone: document.getElementById('contactPhone').value,
+                address: document.getElementById('contactAddress').value,
+                status: isB2B ? '' : document.getElementById('contactStatus').value,
+                followUp: isB2B ? '' : document.getElementById('followUpDate').value,
+                lead: isB2B ? '' : document.getElementById('leadSource').value,
+                system: isB2B ? '' : document.getElementById('systemType').value,
+                condition: isB2B ? '' : document.getElementById('siteCondition').value,
+                notes: document.getElementById('siteNotes').value || '',
+                dateAdded: isNew ? new Date().toLocaleDateString('ms-MY') : getExistingDate(id)
+            };
+
+            if(!isNew) {
+                const index = crmDatabase.findIndex(c => c.id === id);
+                if(index !== -1) crmDatabase[index] = contactData;
+            } else {
+                crmDatabase.unshift(contactData);
+            }
+
+            localStorage.setItem('dbss_crm_database', JSON.stringify(crmDatabase));
+            showToast(`Data ${name} berjaya disimpan!`, "success");
+
+            // TELEGRAM: 1. LEAD PING (Prospek Baru)
+            if(isNew && !isB2B && contactData.status === 'NEW LEAD') {
+                const tgMsg = `🔔 *PROSPEK BARU MASUK!*\n👤 Nama: ${contactData.name}\n📱 Tel: ${contactData.phone || '-'}\n🎯 Sumber: ${contactData.lead}\n🛠️ Sistem: ${contactData.system}\n📝 Nota: ${contactData.notes || '-'}`;
+                sendTelegramAlert(tgMsg, false); // Hantar ke Grup Jualan
+            }
+
+            resetForm(); renderContacts();
+        }
+
+        function getExistingDate(id) { const c = crmDatabase.find(c => c.id === id); return c ? (c.dateAdded || new Date().toLocaleDateString('ms-MY')) : new Date().toLocaleDateString('ms-MY'); }
+
+        function resetForm() {
+            document.getElementById('contactId').value = ""; document.getElementById('contactType').value = "CLIENT";
+            document.getElementById('contactName').value = ""; document.getElementById('contactPhone').value = "";
+            document.getElementById('contactAddress').value = ""; document.getElementById('leadSource').value = "WhatsApp";
+            document.getElementById('contactStatus').value = "NEW LEAD"; document.getElementById('followUpDate').value = "";
+            document.getElementById('systemType').value = "CCTV System"; document.getElementById('siteCondition').value = "Surface Wiring";
+            document.getElementById('siteNotes').value = "";
+            
+            syncLiquidSelect('contactType'); syncLiquidSelect('leadSource'); syncLiquidSelect('contactStatus'); syncLiquidSelect('systemType'); syncLiquidSelect('siteCondition');
+            toggleAssessmentFields(); window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function renderContacts() {
+            const tbody = document.getElementById('crmBody'); const searchQuery = document.getElementById('searchInput').value.toLowerCase();
+            const totalClients = crmDatabase.filter(c => ['CLIENT', 'MAINTENANCE'].includes(c.type)).length;
+            const totalSuppliers = crmDatabase.filter(c => ['SUPPLIER', 'SUB-CONTRACTOR', 'OTHERS'].includes(c.type)).length;
+            const activeProspects = crmDatabase.filter(c => ['CLIENT', 'MAINTENANCE'].includes(c.type) && ['NEW LEAD', 'FOLLOW UP', 'QUOTATION SENT', 'NEGOTIATION', 'K.I.V'].includes(c.status)).length;
+            
+            document.getElementById('statClients').innerText = totalClients; document.getElementById('statSuppliers').innerText = totalSuppliers; document.getElementById('statActive').innerText = activeProspects;
+            tbody.innerHTML = '';
+
+            if (crmDatabase.length === 0) return tbody.innerHTML = `<tr><td colspan="2" style="text-align:center; color:#A0AEC0; font-size:11px; padding:20px;">Pangkalan Data Kosong.</td></tr>`;
+
+            const filteredData = crmDatabase.filter(c => c.name.toLowerCase().includes(searchQuery) || (c.phone && c.phone.toLowerCase().includes(searchQuery)));
+            const today = new Date().toISOString().split('T')[0];
+
+            filteredData.forEach(contact => {
+                const isB2B = ['SUPPLIER', 'SUB-CONTRACTOR', 'OTHERS'].includes(contact.type);
+                let typeBadgeClass = contact.type === 'CLIENT' ? 'badge-client' : contact.type === 'SUPPLIER' ? 'badge-supplier' : 'badge-type';
+                const typeBadge = `<span class="badge ${typeBadgeClass}">${contact.type}</span>`;
+                let statusBadge = '';
+                if (!isB2B && contact.status) {
+                    statusBadge = `<span class="badge status-${contact.status.toLowerCase().replace(/[^a-z0-9]/g, '-')}">${contact.status}</span>`;
+                }
+
+                let isUrgent = false; let followUpText = '';
+                if(!isB2B && contact.followUp) {
+                    followUpText = `<div style="font-size:9px; color:#A0AEC0; margin-top:4px;">Follow-up: <span style="color:#FFF;">${contact.followUp}</span></div>`;
+                    if(contact.followUp <= today && !['CLOSED WIN', 'CLOSED LOST'].includes(contact.status)) isUrgent = true;
+                }
+
+                let waLink = '';
+                if (contact.phone) {
+                    let cleanPhone = contact.phone.replace(/\D/g, ''); if (cleanPhone.startsWith('0')) cleanPhone = '6' + cleanPhone;
+                    waLink = `<button class="btn-sm wa-btn" onclick="window.open('https://wa.me/${cleanPhone}', '_blank')">WA</button>`;
+                }
+
+                let mapLink = '';
+                if (contact.address) mapLink = `<button class="btn-sm map-btn" onclick="window.open('https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(contact.address)}', '_blank')">MAPS</button>`;
+
+                const quoteAction = ['CLIENT', 'MAINTENANCE'].includes(contact.type) ? `<button class="btn-sm quote-btn" onclick="pushToQuotation('${contact.id}')">Q.TATION</button>` : ``;
+
+                const tr = document.createElement('tr'); if(isUrgent) tr.classList.add('row-urgent');
+                tr.innerHTML = `
+                    <td><div style="font-size:12px; font-weight:bold; color:#fff; word-break:break-word;">${contact.name}</div><div>${typeBadge} ${statusBadge}</div>${followUpText}</td>
+                    <td><div style="font-family:'JetBrains Mono'; font-size:11px; color:#A0AEC0; margin-bottom:5px;">${contact.phone || '-'}</div><div style="display:flex; flex-wrap:wrap;">${waLink} ${mapLink}<button class="btn-sm action-btn" onclick="editContact('${contact.id}')">EDIT</button><button class="btn-sm delete-btn" onclick="deleteContact('${contact.id}')">X</button>${quoteAction}</div></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // TELEGRAM: 2. RADAR FOLLOW-UP PING
+        function checkUrgentFollowUps() {
+            if(crmDatabase.length === 0) return;
+            const today = new Date().toISOString().split('T')[0];
+            const urgentList = crmDatabase.filter(c => !['SUPPLIER', 'SUB-CONTRACTOR', 'OTHERS'].includes(c.type) && c.followUp && c.followUp <= today && !['CLOSED WIN', 'CLOSED LOST'].includes(c.status));
+
+            if(urgentList.length > 0) {
+                setTimeout(() => { showToast(`SISTEM RADAR: ${urgentList.length} Pelanggan perlu dihubungi segera!`, 'warning'); }, 1000);
+                
+                // Telegram Morning Brief (Anti-Spam - Only once a day)
+                const lastSent = localStorage.getItem('dbss_radar_last_sent');
+                if(lastSent !== today) {
+                    let tgMsg = `⚠️ *RADAR FOLLOW-UP HARI INI*\nSistem mengesan ${urgentList.length} prospek perlu dihubungi segera:\n\n`;
+                    urgentList.forEach((c, i) => { tgMsg += `${i+1}. *${c.name}* (${c.system || '-'}) - ${c.phone || '-'}\n`; });
+                    
+                    sendTelegramAlert(tgMsg, false).then(() => {
+                        localStorage.setItem('dbss_radar_last_sent', today); // Kunci supaya tak spam jika buka tutup app
+                    });
+                }
+            }
+        }
+
+        function editContact(id) {
+            const contact = crmDatabase.find(c => c.id === id); if(!contact) return;
+            document.getElementById('contactId').value = contact.id; document.getElementById('contactType').value = contact.type;
+            document.getElementById('contactName').value = contact.name; document.getElementById('contactPhone').value = contact.phone || '';
+            document.getElementById('contactAddress').value = contact.address || ''; toggleAssessmentFields();
+            if(!['SUPPLIER', 'SUB-CONTRACTOR', 'OTHERS'].includes(contact.type)) {
+                document.getElementById('contactStatus').value = contact.status || 'NEW LEAD'; document.getElementById('followUpDate').value = contact.followUp || '';
+                document.getElementById('leadSource').value = contact.lead || 'WhatsApp'; document.getElementById('systemType').value = contact.system || 'CCTV System';
+                document.getElementById('siteCondition').value = contact.condition || 'Surface Wiring'; document.getElementById('siteNotes').value = contact.notes || '';
+            }
+            syncLiquidSelect('contactType'); syncLiquidSelect('leadSource'); syncLiquidSelect('contactStatus'); syncLiquidSelect('systemType'); syncLiquidSelect('siteCondition');
+            window.scrollTo({ top: 0, behavior: 'smooth' }); showToast("Mod Suntingan Diaktifkan", "warning");
+        }
+
+        function deleteContact(id) {
+            showCustomConfirm("AMARAN PADAM DATA", "Adakah anda pasti mahu memadam entiti ini secara kekal? Tindakan ini tidak boleh diundur.", () => {
+                const contactToDelete = crmDatabase.find(c => c.id === id);
+                crmDatabase = crmDatabase.filter(c => c.id !== id);
+                localStorage.setItem('dbss_crm_database', JSON.stringify(crmDatabase));
+                showToast("Data telah berjaya dipadam", "success");
+                
+                // TELEGRAM: 3. AUDIT TRAIL PING
+                if(contactToDelete) {
+                    const tgMsg = `🗑️ *AMARAN: DATA DIPADAM*\nRekod entiti *${contactToDelete.name}* (Tel: ${contactToDelete.phone || '-'}) telah dipadam dari sistem CRM.\n🕒 Tarikh: ${new Date().toLocaleString('ms-MY')}`;
+                    sendTelegramAlert(tgMsg, true); // True bermaksud hantar ke grup Audit
+                }
+                
+                renderContacts();
+            });
+        }
+
+        function pushToQuotation(id) {
+            const contact = crmDatabase.find(c => c.id === id);
+            if(contact) {
+                showCustomConfirm("PENGESAHAN SISTEM", `Jana Sebutharga untuk ${contact.name}? Data akan dibawa ke fail sebutharga.html.`, () => {
+                    localStorage.setItem('dbss_active_client', JSON.stringify(contact));
+                    window.location.href = 'sebutharga.html';
+                });
+            }
+        }
+
+        function exportCSV() {
+            if(crmDatabase.length === 0) return showCustomAlert("RALAT EKSPORT", "Pangkalan data kosong. Tiada fail untuk dieksport.");
+            let csvContent = "data:text/csv;charset=utf-8,ID,Jenis,Nama,Telefon,Alamat,Status,Tarikh Follow-Up,Sumber,Sistem,Kondisi Tapak,Nota,Tarikh Daftar\n";
+            crmDatabase.forEach(function(c) {
+                let row = [ c.id, c.type, c.name, c.phone, `"${(c.address || '').replace(/"/g, '""').replace(/\n/g, ' ')}"`, c.status || '', c.followUp || '', c.lead || '', c.system || '', c.condition || '', `"${(c.notes || '').replace(/"/g, '""').replace(/\n/g, ' ')}"`, c.dateAdded ];
+                csvContent += row.join(",") + "\n";
+            });
+            const encodedUri = encodeURI(csvContent); const link = document.createElement("a");
+            link.setAttribute("href", encodedUri); link.setAttribute("download", `DBSS_CRM_BACKUP_${new Date().toISOString().split('T')[0]}.csv`);
+            document.body.appendChild(link); link.click(); document.body.removeChild(link);
+            showToast("Fail CSV sedang dimuat turun.", "success");
+        }
+    </script>
+</body>
+</html>

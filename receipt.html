@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DBSS OS | Official Receipt</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg-dark: #0D1B2A; --glass-bg: rgba(18, 18, 18, 0.6); --glass-border: rgba(255, 255, 255, 0.1); --text-main: #FFFFFF; --accent-blue: #007BFF; --accent-lime: #39FF14; --accent-orange: #FFA500; --accent-yellow: #FBBF24;}
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-dark); color: var(--text-main); margin: 0; padding: 0 0 90px 0; box-sizing: border-box; }
+        
+        .top-header { padding: 15px 20px; backdrop-filter: blur(10px); border-bottom: 1px solid var(--glass-border); position: sticky; top: 0; z-index: 100; display: flex; justify-content: space-between; align-items: center; background: rgba(13, 27, 42, 0.8); }
+        .module-title { font-weight: 700; font-size: 16px; color: var(--accent-yellow); letter-spacing: 1px;}
+        .container { padding: 15px; max-width: 800px; margin: 0 auto; }
+        
+        .tab-menu { display: flex; overflow-x: auto; gap: 10px; margin-bottom: 20px; padding-bottom: 10px; -ms-overflow-style: none; scrollbar-width: none; }
+        .tab-menu::-webkit-scrollbar { display: none; }
+        .tab-btn { background: var(--glass-bg); border: 1px solid var(--glass-border); color: #A0AEC0; padding: 10px 20px; border-radius: 8px; cursor: pointer; white-space: nowrap; font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; }
+        .tab-btn.active { background: var(--accent-yellow); color: #000; border-color: var(--accent-yellow); }
+        
+        .glass-panel { background: var(--glass-bg); backdrop-filter: blur(12px); border: 1px solid var(--glass-border); border-radius: 12px; padding: 15px; margin-bottom: 15px; }
+        .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;}
+        h2 { margin: 0; font-size: 14px; color: var(--accent-yellow); letter-spacing: 1px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; }
+
+        input, select, textarea { width: 100%; padding: 12px; margin-bottom: 12px; background: rgba(0,0,0,0.4); border: 1px solid var(--glass-border); border-radius: 8px; color: var(--text-main); box-sizing: border-box; font-family: 'Inter', sans-serif; font-size: 14px; }
+        textarea { resize: vertical; min-height: 80px; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent-yellow); }
+        select { appearance: none; color: var(--accent-lime); font-weight: 600;}
+        .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+        .btn-add, .btn-execute { width: 100%; padding: 15px; border-radius: 8px; font-weight: 700; cursor: pointer; letter-spacing: 1px; font-family: 'JetBrains Mono', monospace; border: none; }
+        .btn-add { background: transparent; border: 1px dashed var(--accent-yellow); color: var(--accent-yellow); margin-bottom: 15px; }
+        
+        .table-wrapper { overflow-x: auto; margin-bottom: 10px; }
+        table { width: 100%; border-collapse: collapse; font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+        th, td { text-align: left; padding: 10px 5px; border-bottom: 1px solid var(--glass-border); white-space: nowrap; }
+        th { color: #A0AEC0; font-weight: normal; }
+        .row-total { color: var(--accent-lime); font-weight: bold; }
+        .delete-btn { background: rgba(255,0,0,0.2); color: #FF3B30; border: none; border-radius: 4px; padding: 4px 8px; cursor: pointer; font-size: 10px; }
+        .total-display { text-align: right; font-size: 22px; font-weight: 700; color: var(--text-main); margin-top: 10px; font-family: 'JetBrains Mono', monospace; }
+
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; height: 70px; background: rgba(13, 27, 42, 0.9); backdrop-filter: blur(15px); border-top: 1px solid var(--glass-border); display: flex; justify-content: space-around; align-items: center; z-index: 1000; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; color: #A0AEC0; text-decoration: none; font-size: 10px; gap: 5px; }
+        .nav-item.active { color: var(--accent-yellow); }
+        .nav-item svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2; }
+
+        /* PRINT SECTION (Khas Untuk Receipt) */
+        #print-section { display: none; }
+        @media print {
+            body { background: #fff !important; color: #000 !important; margin: 0; padding: 0; font-family: 'Inter', sans-serif;}
+            .top-header, .container, .bottom-nav { display: none !important; }
+            #print-section { display: block !important; padding: 10mm 15mm; }
+            .print-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px; border-bottom: 2px solid #000; padding-bottom: 20px;}
+            .print-biz-info h1 { margin: 0 0 5px 0; font-size: 24px; font-weight: 700; color: #000;}
+            .print-biz-info p { margin: 2px 0; font-size: 12px; color: #333; line-height: 1.4; white-space: pre-wrap;}
+            .print-title { text-align: right; }
+            .print-title h2 { font-size: 26px; margin: 0 0 5px 0; color: #D97706; letter-spacing: 2px; } /* Warna Gold Gelap untuk print */
+            .print-title p { margin: 0; font-size: 12px; font-weight: bold;}
+            
+            .watermark-paid { position: absolute; top: 35%; left: 50%; transform: translate(-50%, -50%) rotate(-30deg); font-size: 120px; color: rgba(57, 255, 20, 0.15); font-weight: bold; border: 12px solid rgba(57, 255, 20, 0.15); padding: 20px; border-radius: 20px; z-index: -1;}
+
+            .print-client { margin-bottom: 30px;}
+            .print-client h3 { margin: 0 0 10px 0; font-size: 12px; background: #f2f2f2; padding: 5px 10px; border-left: 3px solid #D97706;}
+            .print-client p { margin: 4px 0; font-size: 13px; line-height: 1.4; white-space: pre-wrap;}
+            
+            .print-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 13px; }
+            .print-table th, .print-table td { border: 1px solid #ddd; padding: 10px; text-align: left; color: #000;}
+            .print-table th { background-color: #D97706 !important; color: #fff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact;}
+            .print-table td.money { text-align: right; }
+            
+            .print-total-section { display: flex; justify-content: flex-end; margin-bottom: 40px; }
+            .print-total-box { width: 300px; border: 1px solid #ddd; }
+            .print-total-row { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #ddd; }
+            .print-total-row.grand { background: #f2f2f2; font-weight: bold; font-size: 16px; border-bottom: none; -webkit-print-color-adjust: exact; print-color-adjust: exact;}
+            
+            .print-footer { display: flex; justify-content: space-between; font-size: 12px; margin-top: 60px;}
+            .print-sign-box { width: 45%; border-top: 1px solid #000; padding-top: 5px; text-align: center; margin-top: 40px;}
+            .thank-you-note { text-align: center; margin-top: 40px; font-weight: bold; font-size: 14px; color: #555; font-style: italic;}
+        }
+    </style>
+</head>
+<body>
+
+    <header class="top-header">
+        <div class="module-title">OFFICIAL RECEIPT</div>
+        <div style="font-size: 10px; color: #A0AEC0; font-family: 'JetBrains Mono';">DBSS_FIN_RECEIPT</div>
+    </header>
+
+    <div class="container">
+        
+        <div class="tab-menu">
+            <button class="tab-btn" onclick="window.location.href='crm.html'">CRM</button>
+            <button class="tab-btn" onclick="window.location.href='sebutharga.html'">QUOTATION</button>
+            <button class="tab-btn" onclick="window.location.href='invoice.html'">INVOICE</button>
+            <button class="tab-btn" onclick="window.location.href='po.html'">P. ORDER</button>
+            <button class="tab-btn" onclick="window.location.href='do.html'">DELIVERY</button>
+            <button class="tab-btn active">RECEIPT</button>
+            <button class="tab-btn" onclick="window.location.href='inventory.html'">INVENTORY</button>
+            <button class="tab-btn" onclick="window.location.href='settings.html'">SETTINGS</button>
+        </div>
+
+        <div class="glass-panel" style="border-left: 3px solid var(--accent-yellow);">
+            <div class="panel-header"><h2>1. Payment Details</h2></div>
+            
+            <label style="font-size:10px; color:#A0AEC0;">IMPORT DARI PANGKALAN DATA CRM</label>
+            <select id="clientSelect" onchange="autoFillClient()" style="color: var(--accent-yellow);">
+                <option value="" disabled selected>-- Pilih Pelanggan --</option>
+            </select>
+
+            <input type="text" id="recClientName" placeholder="Nama Pelanggan (Received From)">
+            <input type="tel" id="recClientPhone" placeholder="No. Telefon Pelanggan">
+            
+            <div class="input-grid">
+                <div>
+                    <label style="font-size:10px; color:#A0AEC0;">RUJUKAN INVOIS</label>
+                    <input type="text" id="recInvRef" placeholder="Cth: INV-12345">
+                </div>
+                <div>
+                    <label style="font-size:10px; color:#A0AEC0;">KAEDAH BAYARAN</label>
+                    <select id="recMethod">
+                        <option value="Online Transfer / DuitNow">Online Transfer / DuitNow</option>
+                        <option value="Cash / Tunai">Tunai (Cash)</option>
+                        <option value="Cheque">Cek (Cheque)</option>
+                        <option value="Credit/Debit Card">Kad Kredit / Debit</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass-panel">
+            <div class="panel-header">
+                <h2>2. Payment For (Items/Services)</h2>
+            </div>
+            
+            <input type="text" id="itemName" placeholder="Cth: Bayaran Penuh Pemasangan CCTV">
+            
+            <div class="input-grid">
+                <input type="number" id="itemQty" placeholder="Kuantiti" value="1">
+                <input type="number" id="itemPrice" placeholder="Jumlah Bayaran (RM)">
+            </div>
+            <button class="btn-add" onclick="addReceiptItem()">+ TAMBAH REKOD BAYARAN</button>
+        </div>
+
+        <div class="glass-panel">
+            <div class="panel-header"><h2>3. Receipt Summary</h2></div>
+            <div class="table-wrapper">
+                <table id="recTable" style="display: none;">
+                    <thead><tr><th>Perkara</th><th>Qty</th><th>RM</th><th>Sub</th><th></th></tr></thead>
+                    <tbody id="recItemsBody"></tbody>
+                </table>
+            </div>
+            <div class="total-display">JUMLAH DITERIMA: RM <span id="recGrandTotal">0.00</span></div>
+        </div>
+
+        <button class="btn-execute" style="background: var(--accent-yellow); color: #000; margin-bottom: 20px;" onclick="generateReceipt()">JANA RESIT RASMI (PDF)</button>
+
+        <div class="glass-panel">
+            <div class="panel-header"><h2>4. Receipt History Log</h2></div>
+            <div class="table-wrapper">
+                <table id="recHistoryTable">
+                    <thead><tr><th>Resit No</th><th>Pelanggan</th><th>Jumlah (RM)</th><th></th></tr></thead>
+                    <tbody id="recHistoryBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <div id="print-section">
+        <div class="watermark-paid">PAID</div>
+        
+        <div class="print-header">
+            <div class="print-biz-info">
+                <h1 id="pBizName">NAMA SYARIKAT ANDA</h1>
+                <p id="pBizSSM">SSM</p>
+                <p id="pBizAddress">Alamat HQ</p>
+                <p id="pBizPhone">Telefon</p>
+            </div>
+            <div class="print-title">
+                <h2>OFFICIAL RECEIPT</h2>
+                <p>Receipt No: <span id="pRecNo" style="color: #D97706;"></span></p>
+                <p>Tarikh: <span id="pDate"></span></p>
+                <p>Ruj. Invois: <span id="pInvRef"></span></p>
+            </div>
+        </div>
+
+        <div class="print-client">
+            <h3>DITERIMA DARIPADA (RECEIVED FROM):</h3>
+            <p><strong id="pClientName">Nama Pelanggan</strong></p>
+            <p id="pClientPhone">No Tel Pelanggan</p>
+            <p style="margin-top: 10px;"><strong>Kaedah Bayaran: </strong><span id="pMethod">Online Transfer</span></p>
+        </div>
+
+        <table class="print-table">
+            <thead>
+                <tr>
+                    <th style="width: 5%;">Bil</th>
+                    <th style="width: 55%;">Bayaran Untuk (Payment For)</th>
+                    <th style="width: 10%; text-align: center;">Qty</th>
+                    <th style="width: 15%; text-align: right;">Harga (RM)</th>
+                    <th style="width: 15%; text-align: right;">Jumlah (RM)</th>
+                </tr>
+            </thead>
+            <tbody id="pTableBody"></tbody>
+        </table>
+
+        <div class="print-total-section">
+            <div class="print-total-box">
+                <div class="print-total-row grand">
+                    <span>JUMLAH DITERIMA</span>
+                    <span id="pGrandTotal">RM 0.00</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="thank-you-note">Terima kasih kerana memilih perkhidmatan kami! (Thank you for your business)</div>
+
+        <div class="print-footer">
+            <div></div> <div class="print-sign-box">
+                Dikeluarkan Oleh (Issued By),<br>
+                <strong id="pBizNameSign">NAMA SYARIKAT</strong>
+            </div>
+        </div>
+    </div>
+
+        <nav class="bottom-nav">
+        <a href="dashboard.html" class="nav-item">
+            <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" fill="none" stroke="currentColor" stroke-width="2"></path></svg>
+            Command
+        </a>
+        <a href="crm.html" class="nav-item active">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="none" stroke="currentColor" stroke-width="2"></path><polyline points="14 2 14 8 20 8" fill="none" stroke="currentColor" stroke-width="2"></polyline></svg>
+            Workspace
+        </a>
+        <a href="#" class="nav-item">
+            <svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2" fill="none" stroke="currentColor" stroke-width="2"></path></svg>
+            Report
+        </a>
+    </nav>
+
+    <script>
+        let crmClients = [];
+        let recItemsList = [];
+        let recGrandTotal = 0;
+        let bizProfile = {};
+        let savedReceipts = [];
+
+        window.onload = function() {
+            // 1. Muat Profil Syarikat (Untuk Cop Resit)
+            const savedProfile = localStorage.getItem('dbss_business_profile');
+            if (savedProfile) { bizProfile = JSON.parse(savedProfile); }
+
+            // 2. Muat Database PELANGGAN dari CRM
+            const crmData = localStorage.getItem('dbss_crm_database');
+            if(crmData) {
+                const allCrm = JSON.parse(crmData);
+                crmClients = allCrm.filter(c => c.type === 'CLIENT');
+                populateClients();
+            }
+
+            // 3. Muat Sejarah Resit
+            const localRecs = localStorage.getItem('dbss_saved_receipts');
+            if (localRecs) { savedReceipts = JSON.parse(localRecs); }
+            renderRecHistory();
+        };
+
+        // --- PELANGGAN LOGIK ---
+        function populateClients() {
+            const select = document.getElementById('clientSelect');
+            crmClients.forEach(client => {
+                let opt = document.createElement('option');
+                opt.value = client.name; opt.textContent = client.name;
+                select.appendChild(opt);
+            });
+        }
+
+        function autoFillClient() {
+            const selected = document.getElementById('clientSelect').value;
+            const client = crmClients.find(c => c.name === selected);
+            if(client) {
+                document.getElementById('recClientName').value = client.name;
+                document.getElementById('recClientPhone').value = client.phone;
+            }
+        }
+
+        // --- PERKARA BAYARAN LOGIK ---
+        function addReceiptItem() {
+            const name = document.getElementById('itemName').value;
+            const qty = parseFloat(document.getElementById('itemQty').value) || 1;
+            const price = parseFloat(document.getElementById('itemPrice').value);
+            
+            if (!name || isNaN(price)) return alert("Sila isikan Perkara Bayaran dan Jumlah Bayaran (RM).");
+            
+            recItemsList.push({ name, qty, price, total: qty * price });
+            renderRecTable();
+            
+            document.getElementById('itemName').value = ''; 
+            document.getElementById('itemQty').value = '1';
+            document.getElementById('itemPrice').value = '';
+        }
+
+        function renderRecTable() {
+            const tbody = document.getElementById('recItemsBody'); tbody.innerHTML = ''; recGrandTotal = 0;
+            document.getElementById('recTable').style.display = recItemsList.length > 0 ? "table" : "none";
+            recItemsList.forEach((item, index) => {
+                recGrandTotal += item.total;
+                tbody.insertRow().innerHTML = `<td>${item.name}</td><td>${item.qty}</td><td>${item.price.toFixed(2)}</td><td class="row-total">${item.total.toFixed(2)}</td><td><button class="delete-btn" onclick="removeRecItem(${index})">X</button></td>`;
+            });
+            document.getElementById('recGrandTotal').innerText = recGrandTotal.toFixed(2);
+        }
+
+        function removeRecItem(index) { recItemsList.splice(index, 1); renderRecTable(); }
+
+        // --- SEJARAH RESIT ---
+        function renderRecHistory() {
+            const tbody = document.getElementById('recHistoryBody'); tbody.innerHTML = '';
+            if (savedReceipts.length === 0) { tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#A0AEC0; font-size:11px;">TIADA REKOD RESIT</td></tr>`; return; }
+            savedReceipts.forEach((rec, index) => {
+                tbody.insertRow().innerHTML = `
+                    <td><div style="font-weight:bold; color:var(--accent-yellow); font-size:11px;">${rec.recNo}</div><div style="font-size:10px; color:#A0AEC0;">${rec.date}</div></td>
+                    <td><div style="font-size:12px; font-weight:bold;">${rec.clientName}</div></td>
+                    <td style="color:var(--accent-lime); font-size:12px; font-weight:bold;">RM${rec.total.toFixed(2)}</td>
+                    <td><button class="delete-btn" onclick="deleteReceipt(${index})">PADAM</button></td>
+                `;
+            });
+        }
+
+        function deleteReceipt(index) {
+            if (confirm("Padam rekod Resit ini secara kekal?")) { savedReceipts.splice(index, 1); localStorage.setItem('dbss_saved_receipts', JSON.stringify(savedReceipts)); renderRecHistory(); }
+        }
+
+        // --- CETAKAN PDF PINTAR ---
+        function generateReceipt() {
+            const clientName = document.getElementById('recClientName').value;
+            const clientPhone = document.getElementById('recClientPhone').value;
+            const invRef = document.getElementById('recInvRef').value || "N/A";
+            const method = document.getElementById('recMethod').value;
+            
+            if(!clientName || recItemsList.length === 0) return alert("Sila isikan maklumat Pelanggan dan sekurang-kurangnya 1 rekod bayaran.");
+
+            const todayStr = new Date().toLocaleDateString('ms-MY');
+            const recNo = "REC-" + Date.now().toString().slice(-6);
+
+            // Maklumat Pengepala (Syarikat Tuan)
+            document.getElementById('pBizName').innerText = bizProfile.name || "NAMA SYARIKAT ANDA";
+            document.getElementById('pBizNameSign').innerText = bizProfile.name || "NAMA SYARIKAT ANDA"; 
+            document.getElementById('pBizSSM').innerText = "SSM: " + (bizProfile.ssm || "-");
+            document.getElementById('pBizAddress').innerText = bizProfile.address || "-";
+            document.getElementById('pBizPhone').innerText = "Tel: " + (bizProfile.phone || "-");
+            
+            // Maklumat Resit
+            document.getElementById('pRecNo').innerText = recNo;
+            document.getElementById('pDate').innerText = todayStr;
+            document.getElementById('pInvRef').innerText = invRef;
+            document.getElementById('pMethod').innerText = method;
+
+            // Maklumat Pembayar (Klien)
+            document.getElementById('pClientName').innerText = clientName;
+            document.getElementById('pClientPhone').innerText = clientPhone || "-";
+
+            // Jadual
+            const pTableBody = document.getElementById('pTableBody'); pTableBody.innerHTML = ''; 
+            recItemsList.forEach((item, index) => {
+                pTableBody.insertRow().innerHTML = `<td style="text-align:center;">${index + 1}</td><td>${item.name}</td><td style="text-align:center;">${item.qty}</td><td class="money">${item.price.toFixed(2)}</td><td class="money"><strong>${item.total.toFixed(2)}</strong></td>`;
+            });
+            document.getElementById('pGrandTotal').innerText = "RM " + recGrandTotal.toFixed(2);
+
+            // Simpan Ke Sejarah
+            savedReceipts.unshift({ recNo: recNo, date: todayStr, clientName: clientName, total: recGrandTotal });
+            localStorage.setItem('dbss_saved_receipts', JSON.stringify(savedReceipts)); renderRecHistory();
+
+            window.print();
+        }
+    </script>
+</body>
+</html>

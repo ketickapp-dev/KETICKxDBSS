@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DBSS OS | System Settings PRO</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg-dark: #0D1B2A; --glass-bg: rgba(18, 18, 18, 0.6); --glass-border: rgba(255, 255, 255, 0.15); --text-main: #FFFFFF; --accent-blue: #007BFF; --accent-lime: #39FF14; --accent-orange: #FFA500; --danger-red: #FF3B30; --accent-grey: #CBD5E1; --accent-telegram: #0088cc;}
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-dark); color: var(--text-main); margin: 0; padding: 0 0 90px 0; box-sizing: border-box; }
+        
+        /* HEADER & TABS */
+        .top-header { padding: 15px 20px; backdrop-filter: blur(10px); border-bottom: 1px solid var(--glass-border); position: sticky; top: 0; z-index: 100; display: flex; justify-content: space-between; align-items: center; background: rgba(13, 27, 42, 0.8); }
+        .module-title { font-weight: 700; font-size: 16px; color: var(--accent-grey); letter-spacing: 1px;}
+        .container { padding: 15px; max-width: 800px; margin: 0 auto; }
+        
+        .tab-menu { display: flex; overflow-x: auto; gap: 10px; margin-bottom: 20px; padding-bottom: 10px; -ms-overflow-style: none; scrollbar-width: none; }
+        .tab-menu::-webkit-scrollbar { display: none; }
+        .tab-btn { background: var(--glass-bg); border: 1px solid var(--glass-border); color: #A0AEC0; padding: 10px 20px; border-radius: 8px; cursor: pointer; white-space: nowrap; font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; transition: all 0.2s;}
+        .tab-btn.active { background: var(--accent-grey); color: #000; border-color: var(--accent-grey); }
+        
+        /* PANELS & INPUTS */
+        .glass-panel { background: var(--glass-bg); backdrop-filter: blur(12px); border: 1px solid var(--glass-border); border-radius: 12px; padding: 15px; margin-bottom: 15px; }
+        .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px dashed var(--glass-border); padding-bottom: 10px;}
+        h2 { margin: 0; font-size: 14px; color: var(--accent-grey); letter-spacing: 1px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; }
+
+        label { font-size: 10px; color: #A0AEC0; font-family: 'JetBrains Mono', monospace; margin-bottom: 5px; display: block; text-transform: uppercase; font-weight: bold;}
+        input, select, textarea { 
+            width: 100%; padding: 12px; margin-bottom: 12px; 
+            background: rgba(18, 18, 18, 0.4); backdrop-filter: blur(10px); 
+            border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 8px; color: var(--text-main); 
+            box-sizing: border-box; font-family: 'Inter', sans-serif; font-size: 14px; transition: all 0.3s ease; color-scheme: dark;
+        }
+        textarea { resize: vertical; min-height: 80px; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent-blue); box-shadow: 0 0 15px rgba(0, 123, 255, 0.2); }
+        .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+        /* ANIMASI DIAGONAL BUTTONS (DARI CRM.HTML) */
+        .btn-diagonal { 
+            width: 100%; padding: 15px; border-radius: 8px; font-weight: 700; cursor: pointer; letter-spacing: 1px; 
+            font-family: 'JetBrains Mono', monospace; position: relative; overflow: hidden; z-index: 1; 
+            background: rgba(0, 123, 255, 0.1); border: 1px solid var(--accent-blue); color: #fff; transition: 0.3s; 
+        }
+        .btn-diagonal::before { 
+            content: ''; position: absolute; top: 0; left: -150%; width: 150%; height: 100%; 
+            background: var(--accent-blue); z-index: -1; transform: skewX(-30deg); transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
+        }
+        .btn-diagonal:hover::before, .btn-diagonal:active::before { left: -20%; }
+        
+        .btn-diagonal.orange { background: rgba(255, 165, 0, 0.1); border-color: var(--accent-orange); color: var(--accent-orange); }
+        .btn-diagonal.orange::before { background: var(--accent-orange); }
+        .btn-diagonal.orange:hover { color: #000; }
+
+        .btn-diagonal.green { background: rgba(57, 255, 20, 0.1); border-color: var(--accent-lime); color: var(--accent-lime); }
+        .btn-diagonal.green::before { background: var(--accent-lime); }
+        .btn-diagonal.green:hover { color: #000; }
+
+        .btn-diagonal-reset { 
+            width: 100%; padding: 15px; border-radius: 8px; font-weight: 700; cursor: pointer; letter-spacing: 1px; 
+            font-family: 'JetBrains Mono', monospace; position: relative; overflow: hidden; z-index: 1; 
+            margin-top: 10px; background: transparent; border: 1px dashed #A0AEC0; color: #A0AEC0; transition: 0.3s; 
+        }
+        .btn-diagonal-reset::before { 
+            content: ''; position: absolute; top: 0; left: -150%; width: 150%; height: 100%; 
+            background: rgba(160, 174, 192, 0.2); z-index: -1; transform: skewX(-30deg); transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
+        }
+        .btn-diagonal-reset:hover::before, .btn-diagonal-reset:active::before { left: -20%; }
+        .btn-diagonal-reset:hover { color: #fff; border-style: solid; border-color: #fff;}
+
+        /* LOGO & SIGNATURE */
+        .upload-box { border: 2px dashed #4B5563; padding: 20px; text-align: center; border-radius: 8px; margin-bottom: 15px; cursor: pointer; background: rgba(255,255,255,0.05); position: relative; transition: 0.3s;}
+        .upload-box:hover { border-color: var(--accent-blue); background: rgba(0, 123, 255, 0.1); }
+        .upload-box img { max-height: 100px; max-width: 100%; display: none; margin: 0 auto; border-radius: 4px;}
+        .upload-text { font-size: 12px; color: #A0AEC0; margin-top: 10px; font-family: 'JetBrains Mono', monospace; }
+        input[type="file"] { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+
+        .sig-container { border: 2px solid #4B5563; border-radius: 8px; overflow: hidden; margin-bottom: 15px; background: #fff;}
+        canvas { display: block; width: 100%; height: 150px; cursor: crosshair; touch-action: none; }
+        .sig-tools { display: flex; justify-content: space-between; background: #1F2937; padding: 10px; gap: 10px;}
+        .sig-preview-box { margin-top: 10px; text-align: center; }
+        .sig-preview-box img { max-height: 80px; display: none; background: #fff; padding: 5px; border-radius: 4px;}
+
+        /* TOAST NOTIFICATION (DARI CRM.HTML) */
+        .toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 10000; display: flex; flex-direction: column; gap: 10px; width: 90%; max-width: 400px; pointer-events: none; }
+        .toast { 
+            background: rgba(18, 18, 18, 0.85); backdrop-filter: blur(12px); border-radius: 8px; padding: 15px 20px; 
+            color: #fff; font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); opacity: 0; transform: translateY(-20px); 
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); display: flex; align-items: center; gap: 10px;
+        }
+        .toast.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
+        .toast-icon { font-size: 18px; }
+        .toast-success { border-left: 4px solid var(--accent-lime); }
+        .toast-error { border-left: 4px solid var(--danger-red); }
+
+        /* BOTTOM NAV */
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; height: 70px; background: rgba(13, 27, 42, 0.9); backdrop-filter: blur(15px); border-top: 1px solid var(--glass-border); display: flex; justify-content: space-around; align-items: center; z-index: 1000; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; color: #A0AEC0; text-decoration: none; font-size: 10px; gap: 5px; }
+        .nav-item.active { color: var(--accent-grey); }
+        .nav-item svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2; }
+    </style>
+</head>
+<body>
+
+    <div id="toastContainer" class="toast-container"></div>
+
+    <header class="top-header">
+        <div class="module-title">SYSTEM SETTINGS PRO</div>
+        <div style="font-size: 10px; color: var(--accent-lime); font-family: 'JetBrains Mono';">DBSS_CORE_CONFIG</div>
+    </header>
+
+    <div class="container">
+        
+        <div class="tab-menu" id="topTabMenu">
+            <button class="tab-btn" onclick="window.location.href='crm.html'">CRM</button>
+            <button class="tab-btn" onclick="window.location.href='po.html'">P. ORDER</button>
+            <button class="tab-btn" onclick="window.location.href='inventory.html'">INVENTORY</button>
+            <button class="tab-btn active">SETTINGS</button>
+        </div>
+
+        <div class="glass-panel" style="border-left: 3px solid var(--accent-orange);">
+            <div class="panel-header"><h2 style="color: var(--accent-orange);">1. Database Backup & Restore</h2></div>
+            <div style="font-size: 11px; color: #A0AEC0; margin-bottom: 15px;">Eksport keseluruhan pangkalan data sistem DBSS OS anda (CRM, PO, Inventori, Konfigurasi) ke dalam satu fail JSON untuk sandaran.</div>
+            
+            <div class="input-grid">
+                <button class="btn-diagonal orange" onclick="exportDatabase()">📥 EKSPORT DB (JSON)</button>
+                <div style="position: relative;">
+                    <button class="btn-diagonal-reset" style="margin-top: 0; height: 100%;">📤 RESTORE DATA</button>
+                    <input type="file" id="dbUpload" accept=".json" onchange="restoreDatabase(event)">
+                </div>
+            </div>
+        </div>
+
+        <div class="glass-panel" style="border-left: 3px solid var(--danger-red);">
+            <div class="panel-header"><h2>2. Global Tax Engine</h2></div>
+            
+            <div class="input-grid">
+                <div>
+                    <label>NAMA CUKAI (SST/GST)</label>
+                    <input type="text" id="sysTaxName" placeholder="Cth: SST">
+                </div>
+                <div>
+                    <label>MASTER TAX RATE (%)</label>
+                    <input type="number" id="sysTaxRate" placeholder="Cth: 8" value="0">
+                </div>
+            </div>
+        </div>
+
+        <div class="glass-panel" style="border-left: 3px solid var(--accent-blue);">
+            <div class="panel-header"><h2>3. Business Info & Logo</h2></div>
+            
+            <label>LOGO SYARIKAT</label>
+            <div class="upload-box" id="logoUploadBox">
+                <input type="file" id="logoInput" accept="image/*" onchange="handleLogoUpload(event)">
+                <img id="logoPreview" src="">
+                <div class="upload-text" id="logoText">Klik di sini untuk Muat Naik Logo</div>
+            </div>
+
+            <label>NAMA SYARIKAT / PERNIAGAAN</label>
+            <input type="text" id="bizName" placeholder="Cth: DBSS OS ENTERPRISE">
+            
+            <div class="input-grid">
+                <div>
+                    <label>NO. TELEFON RASMI</label>
+                    <input type="tel" id="bizPhone" placeholder="+60...">
+                </div>
+                <div>
+                    <label>EMAIL RASMI</label>
+                    <input type="email" id="bizEmail" placeholder="sales@syarikat.com">
+                </div>
+            </div>
+
+            <label>NO. PENDAFTARAN SYARIKAT (SSM)</label>
+            <input type="text" id="bizSSM" placeholder="Cth: 202301234567">
+            <label>ALAMAT PENUH IBU PEJABAT</label>
+            <textarea id="bizAddress" placeholder="Alamat lengkap untuk pengepala dokumen..."></textarea>
+        </div>
+
+        <div class="glass-panel" style="border-left: 3px solid var(--accent-lime);">
+            <div class="panel-header"><h2>4. Digital Signature Setup</h2></div>
+            
+            <label>LUKIS TANDATANGAN ANDA DI SINI</label>
+            <div class="sig-container">
+                <canvas id="sigCanvas"></canvas>
+                <div class="sig-tools">
+                    <button class="btn-diagonal-reset" style="margin:0; padding: 8px; width: 48%;" onclick="clearSignature()">PADAM</button>
+                    <button class="btn-diagonal green" style="margin:0; padding: 8px; width: 48%;" onclick="saveSignature()">SAHKAN LUKISAN</button>
+                </div>
+            </div>
+
+            <div class="sig-preview-box">
+                <label>TANDATANGAN AKTIF:</label><br>
+                <img id="sigPreview" src="">
+                <div id="sigStatus" style="font-size: 10px; color: #A0AEC0; margin-top:5px;">Tiada tandatangan disimpan.</div>
+            </div>
+        </div>
+
+        <div class="glass-panel" style="border-left: 3px solid var(--accent-telegram);">
+            <div class="panel-header">
+                <h2 style="color: var(--accent-telegram);">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:5px; vertical-align: middle;">
+                        <path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13"></path>
+                    </svg>
+                    5. Telegram API Integration
+                </h2>
+            </div>
+            
+            <label>BOT TOKEN</label>
+            <input type="password" id="tgBotToken" placeholder="Contoh: 1234567890:AAH_xyz123abc...">
+
+            <div class="input-grid">
+                <div>
+                    <label>CHAT ID (Grup Staf)</label>
+                    <input type="text" id="tgGroupChatId" placeholder="Cth: -100123456789">
+                </div>
+                <div>
+                    <label>CHAT ID (Arkib)</label>
+                    <input type="text" id="tgAuditChatId" placeholder="Cth: -100987654321">
+                </div>
+            </div>
+        </div>
+
+        <button class="btn-diagonal" onclick="saveAllSettings()" style="margin-bottom: 20px;">SIMPAN SEMUA KONFIGURASI</button>
+
+    </div>
+
+    <nav class="bottom-nav">
+        <a href="dashboard.html" class="nav-item">
+            <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" fill="none" stroke="currentColor" stroke-width="2"></path></svg>
+            Command
+        </a>
+        <a href="crm.html" class="nav-item">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="none" stroke="currentColor" stroke-width="2"></path><polyline points="14 2 14 8 20 8" fill="none" stroke="currentColor" stroke-width="2"></polyline></svg>
+            Workspace
+        </a>
+        <a href="#" class="nav-item">
+            <svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2" fill="none" stroke="currentColor" stroke-width="2"></path></svg>
+            Report
+        </a>
+    </nav>
+
+    <script>
+        let bizProfile = {
+            name: '', phone: '', email: '', address: '', ssm: '', 
+            taxName: '', taxRate: 0,
+            logoBase64: '', sigBase64: '',
+            tgBotToken: '', tgGroupChatId: '', tgAuditChatId: ''
+        };
+
+        // --- TOAST NOTIFICATION SYSTEM (DARI CRM) ---
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            let icon = type === 'success' ? '✅' : '❌';
+            toast.innerHTML = `<span class="toast-icon">${icon}</span> <span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3500);
+        }
+
+        // --- GLOBAL BACKUP & RESTORE ---
+        function exportDatabase() {
+            const backupData = {
+                timestamp: new Date().toISOString(),
+                dbss_business_profile: localStorage.getItem('dbss_business_profile'),
+                dbss_inventory: localStorage.getItem('dbss_inventory'),
+                dbss_crm_database: localStorage.getItem('dbss_crm_database'),
+                dbss_po_history: localStorage.getItem('dbss_po_history')
+            };
+            
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", `DBSS_BACKUP_${Date.now()}.json`);
+            document.body.appendChild(downloadAnchorNode); downloadAnchorNode.click(); downloadAnchorNode.remove();
+            showToast("Backup berjaya dijana & dimuat turun!");
+        }
+
+        function restoreDatabase(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if(data.dbss_business_profile) localStorage.setItem('dbss_business_profile', data.dbss_business_profile);
+                    if(data.dbss_inventory) localStorage.setItem('dbss_inventory', data.dbss_inventory);
+                    if(data.dbss_crm_database) localStorage.setItem('dbss_crm_database', data.dbss_crm_database);
+                    if(data.dbss_po_history) localStorage.setItem('dbss_po_history', data.dbss_po_history);
+                    showToast("Sistem berjaya dipulihkan dari sandaran!");
+                    setTimeout(() => location.reload(), 1500);
+                } catch(err) {
+                    showToast("Format fail JSON tidak sah!", "error");
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // --- SISTEM UPLOAD GAMBAR ---
+        function handleLogoUpload(event) {
+            const file = event.target.files[0]; if(!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                bizProfile.logoBase64 = e.target.result;
+                document.getElementById('logoPreview').src = e.target.result;
+                document.getElementById('logoPreview').style.display = 'block';
+                document.getElementById('logoText').style.display = 'none';
+            }; reader.readAsDataURL(file);
+        }
+
+        // --- SISTEM CANVAS TANDATANGAN ---
+        const canvas = document.getElementById('sigCanvas');
+        const ctx = canvas.getContext('2d');
+        let isDrawing = false;
+
+        function resizeCanvas() {
+            const ratio = Math.max(window.devicePixelRatio || 1, 1);
+            const rect = canvas.parentNode.getBoundingClientRect();
+            canvas.width = rect.width * ratio; canvas.height = 150 * ratio; 
+            ctx.scale(ratio, ratio); canvas.style.width = rect.width + 'px'; canvas.style.height = '150px';
+            ctx.strokeStyle = '#000000'; ctx.lineWidth = 2.5; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+        }
+        window.addEventListener('resize', resizeCanvas); setTimeout(resizeCanvas, 100); 
+
+        function getPos(evt) {
+            const rect = canvas.getBoundingClientRect();
+            let clientX = evt.clientX; let clientY = evt.clientY;
+            if (evt.touches && evt.touches.length > 0) { clientX = evt.touches[0].clientX; clientY = evt.touches[0].clientY; }
+            return { x: clientX - rect.left, y: clientY - rect.top };
+        }
+
+        canvas.addEventListener('mousedown', (e) => { isDrawing = true; const pos = getPos(e); ctx.beginPath(); ctx.moveTo(pos.x, pos.y); });
+        canvas.addEventListener('mousemove', (e) => { if (!isDrawing) return; const pos = getPos(e); ctx.lineTo(pos.x, pos.y); ctx.stroke(); });
+        canvas.addEventListener('mouseup', () => { isDrawing = false; }); canvas.addEventListener('mouseout', () => { isDrawing = false; });
+        canvas.addEventListener('touchstart', (e) => { e.preventDefault(); isDrawing = true; const pos = getPos(e); ctx.beginPath(); ctx.moveTo(pos.x, pos.y); }, {passive: false});
+        canvas.addEventListener('touchmove', (e) => { e.preventDefault(); if (!isDrawing) return; const pos = getPos(e); ctx.lineTo(pos.x, pos.y); ctx.stroke(); }, {passive: false});
+        canvas.addEventListener('touchend', (e) => { e.preventDefault(); isDrawing = false; }, {passive: false});
+
+        function clearSignature() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
+        function saveSignature() {
+            bizProfile.sigBase64 = canvas.toDataURL('image/png');
+            document.getElementById('sigPreview').src = bizProfile.sigBase64;
+            document.getElementById('sigPreview').style.display = 'inline-block';
+            document.getElementById('sigStatus').innerText = "Tandatangan lukisan disahkan.";
+            document.getElementById('sigStatus').style.color = "var(--accent-lime)";
+            showToast("Tandatangan disahkan. Jangan lupa simpan konfigurasi.");
+        }
+
+        // --- SISTEM BACA & SIMPAN DATA ---
+        window.onload = function() {
+            const savedProfile = localStorage.getItem('dbss_business_profile');
+            if (savedProfile) {
+                bizProfile = JSON.parse(savedProfile);
+                
+                document.getElementById('bizName').value = bizProfile.name || '';
+                document.getElementById('bizPhone').value = bizProfile.phone || '';
+                document.getElementById('bizEmail').value = bizProfile.email || '';
+                document.getElementById('bizAddress').value = bizProfile.address || '';
+                document.getElementById('bizSSM').value = bizProfile.ssm || '';
+                
+                document.getElementById('sysTaxName').value = bizProfile.taxName || '';
+                document.getElementById('sysTaxRate').value = bizProfile.taxRate || 0;
+
+                document.getElementById('tgBotToken').value = bizProfile.tgBotToken || '';
+                document.getElementById('tgGroupChatId').value = bizProfile.tgGroupChatId || '';
+                document.getElementById('tgAuditChatId').value = bizProfile.tgAuditChatId || '';
+
+                if(bizProfile.logoBase64) {
+                    document.getElementById('logoPreview').src = bizProfile.logoBase64;
+                    document.getElementById('logoPreview').style.display = 'block';
+                    document.getElementById('logoText').style.display = 'none';
+                }
+                if(bizProfile.sigBase64) {
+                    document.getElementById('sigPreview').src = bizProfile.sigBase64;
+                    document.getElementById('sigPreview').style.display = 'inline-block';
+                    document.getElementById('sigStatus').innerText = "Tandatangan sedia ada telah dimuatkan.";
+                    document.getElementById('sigStatus').style.color = "var(--accent-lime)";
+                }
+            }
+            const tabMenu = document.getElementById('topTabMenu');
+            if(tabMenu) tabMenu.scrollLeft = tabMenu.scrollWidth;
+        };
+
+        function saveAllSettings() {
+            bizProfile.name = document.getElementById('bizName').value;
+            bizProfile.phone = document.getElementById('bizPhone').value;
+            bizProfile.email = document.getElementById('bizEmail').value;
+            bizProfile.address = document.getElementById('bizAddress').value;
+            bizProfile.ssm = document.getElementById('bizSSM').value;
+            
+            bizProfile.taxName = document.getElementById('sysTaxName').value;
+            bizProfile.taxRate = parseFloat(document.getElementById('sysTaxRate').value) || 0;
+
+            bizProfile.tgBotToken = document.getElementById('tgBotToken').value.trim();
+            bizProfile.tgGroupChatId = document.getElementById('tgGroupChatId').value.trim();
+            bizProfile.tgAuditChatId = document.getElementById('tgAuditChatId').value.trim();
+
+            localStorage.setItem('dbss_business_profile', JSON.stringify(bizProfile));
+            showToast("DBSS CORE: Konfigurasi Berjaya Disimpan!");
+        }
+    </script>
+</body>
+</html>

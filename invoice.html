@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DBSS OS | Advanced Invoice Module</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0D1B2A; --glass-bg: rgba(18, 18, 18, 0.6); --glass-border: rgba(255, 255, 255, 0.1);
+            --text-main: #FFFFFF; --accent-blue: #007BFF; --accent-lime: #39FF14; --accent-orange: #FFA500;
+            --accent-telegram: #0088cc; --accent-red: #FF3B30; --accent-teal: #17A2B8;
+        }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-dark); color: var(--text-main); margin: 0; padding: 0 0 90px 0; box-sizing: border-box; }
+        
+        .top-header { padding: 15px 20px; backdrop-filter: blur(10px); border-bottom: 1px solid var(--glass-border); position: sticky; top: 0; z-index: 100; display: flex; justify-content: space-between; align-items: center; background: rgba(13, 27, 42, 0.8); }
+        .module-title { font-weight: 700; font-size: 16px; color: var(--accent-orange); letter-spacing: 1px;}
+        .container { padding: 15px; max-width: 800px; margin: 0 auto; }
+        
+        .tab-menu { display: flex; overflow-x: auto; gap: 10px; margin-bottom: 20px; padding-bottom: 10px; -ms-overflow-style: none; scrollbar-width: none; }
+        .tab-menu::-webkit-scrollbar { display: none; }
+        .tab-btn { background: var(--glass-bg); border: 1px solid var(--glass-border); color: #A0AEC0; padding: 10px 20px; border-radius: 8px; cursor: pointer; white-space: nowrap; font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; transition: all 0.2s; }
+        .tab-btn.active { background: var(--accent-orange); color: #000; border-color: var(--accent-orange); }
+
+        .glass-panel { background: var(--glass-bg); backdrop-filter: blur(12px); border: 1px solid var(--glass-border); border-radius: 12px; padding: 15px; margin-bottom: 15px; transition: z-index 0.3s;}
+        .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;}
+        h2 { margin: 0; font-size: 14px; color: var(--accent-orange); letter-spacing: 1px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; }
+        
+        input, select, textarea { width: 100%; padding: 12px; margin-bottom: 12px; background: rgba(0,0,0,0.4); border: 1px solid var(--glass-border); border-radius: 8px; color: var(--text-main); box-sizing: border-box; font-size: 14px; transition: all 0.3s ease; color-scheme: dark;}
+        input:focus, textarea:focus { outline: none; border-color: var(--accent-orange); box-shadow: 0 0 15px rgba(255, 165, 0, 0.2); }
+        .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        
+        /* LIQUID SELECT UI */
+        .liquid-select-wrapper { position: relative; width: 100%; margin-bottom: 12px; font-family: 'Inter', sans-serif; display: block; }
+        .liquid-header { width: 100%; padding: 12px 15px; background: rgba(18, 18, 18, 0.4); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 8px; color: var(--accent-orange); font-weight: 600; font-size: 14px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box; transition: all 0.3s ease; }
+        .liquid-select-wrapper.open .liquid-header, .liquid-header:hover { box-shadow: 0 0 15px rgba(255, 165, 0, 0.2); }
+        .liquid-list { position: absolute; top: 100%; left: 0; width: 100%; background: rgba(13, 27, 42, 0.95); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; margin-top: 5px; max-height: 0; overflow: hidden; opacity: 0; transition: max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 100;}
+        .liquid-select-wrapper.open .liquid-list { max-height: 250px; overflow-y: auto; opacity: 1; }
+        .liquid-item { padding: 12px 15px; color: var(--text-main); font-size: 13px; cursor: pointer; position: relative; overflow: hidden; z-index: 1; border-bottom: 1px solid rgba(255,255,255,0.05); transition: color 0.3s; }
+        .liquid-item:last-child { border-bottom: none; }
+        .liquid-item::before { content: ''; position: absolute; bottom: -100%; left: 0; width: 100%; height: 100%; background: rgba(255, 165, 0, 0.8); z-index: -1; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); border-radius: 50% 50% 0 0; }
+        .liquid-item:hover::before, .liquid-item.clicked::before { bottom: 0; border-radius: 0; }
+        .liquid-item:hover, .liquid-item.clicked { color: #000; font-weight: 600; }
+        .liquid-item.selected { background: rgba(255,255,255,0.05); }
+
+        /* DIAGONAL BUTTONS */
+        .btn-diagonal { width: 100%; padding: 15px; border-radius: 8px; font-weight: 700; cursor: pointer; letter-spacing: 1px; font-family: 'JetBrains Mono', monospace; position: relative; overflow: hidden; z-index: 1; background: rgba(255, 165, 0, 0.1); border: 1px solid var(--accent-orange); color: var(--accent-orange); transition: 0.3s; margin-bottom: 10px; text-transform: uppercase;}
+        .btn-diagonal::before { content: ''; position: absolute; top: 0; left: -150%; width: 150%; height: 100%; background: var(--accent-orange); z-index: -1; transform: skewX(-30deg); transition: left 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .btn-diagonal:hover::before, .btn-diagonal:active::before { left: -20%; }
+        .btn-diagonal:hover { color: #000; }
+
+        .table-wrapper { overflow-x: auto; margin-bottom: 10px; }
+        table { width: 100%; border-collapse: collapse; font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+        th, td { text-align: left; padding: 10px 5px; border-bottom: 1px solid var(--glass-border); white-space: nowrap; }
+        th { color: #A0AEC0; font-weight: normal; }
+        .total-display { text-align: right; font-size: 22px; font-weight: 700; color: var(--text-main); margin-top: 10px; font-family: 'JetBrains Mono', monospace; }
+        
+        .status-badge { padding: 5px 10px; border-radius: 4px; font-size: 10px; font-weight: bold; }
+        .status-unpaid { background: rgba(255,59,48,0.2); color: #FF3B30; border: 1px solid #FF3B30;}
+        .status-partial { background: rgba(23, 162, 184, 0.2); color: var(--accent-teal); border: 1px solid var(--accent-teal);}
+        .status-paid { background: rgba(57,255,20,0.2); color: var(--accent-lime); border: 1px solid var(--accent-lime);}
+        .status-overdue { background: rgba(255, 165, 0, 0.2); color: var(--accent-orange); border: 1px solid var(--accent-orange);}
+        .status-void { background: rgba(108, 117, 125, 0.2); color: #6C757D; border: 1px solid #6C757D;}
+
+        /* TOAST & MODAL */
+        .toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 10000; display: flex; flex-direction: column; gap: 10px; width: 90%; max-width: 400px; pointer-events: none; }
+        .toast { background: rgba(18, 18, 18, 0.85); backdrop-filter: blur(12px); border-radius: 8px; padding: 15px 20px; color: #fff; font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600; box-shadow: 0 10px 30px rgba(0,0,0,0.5); opacity: 0; transform: translateY(-20px); transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); display: flex; align-items: center; gap: 10px; }
+        .toast.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
+        .toast-success { border-left: 4px solid var(--accent-lime); }
+        .toast-warning { border-left: 4px solid var(--accent-orange); }
+        .toast-error { border-left: 4px solid var(--accent-red); }
+
+        .custom-alert-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px); display: flex; justify-content: center; align-items: center; z-index: 9999; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+        .custom-alert-overlay.show { opacity: 1; pointer-events: auto; }
+        .custom-alert-box { background: rgba(18, 18, 18, 0.85); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; width: 90%; max-width: 400px; overflow: hidden; transform: translateY(20px) scale(0.95); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+        .custom-alert-overlay.show .custom-alert-box { transform: translateY(0) scale(1); }
+        .warning-stripes { height: 8px; width: 100%; background: repeating-linear-gradient(45deg, #FFA500, #FFA500 10px, #000 10px, #000 20px); }
+        .alert-content { padding: 25px 20px; text-align: center; }
+        .alert-title { color: var(--accent-orange); font-family: 'JetBrains Mono', monospace; font-size: 16px; margin-bottom: 10px; font-weight: bold; }
+        .alert-message { color: #fff; font-size: 13px; margin-bottom: 25px; line-height: 1.5; }
+        .alert-actions { display: flex; gap: 10px; justify-content: center; }
+        .btn-alert { padding: 12px 20px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer; font-family: 'JetBrains Mono', monospace; font-size: 12px; flex: 1; }
+        .btn-alert-confirm { background: var(--accent-orange); color: #000; }
+        .btn-alert-cancel { background: transparent; border: 1px solid #A0AEC0; color: #A0AEC0; }
+
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; height: 70px; background: rgba(13, 27, 42, 0.9); backdrop-filter: blur(15px); border-top: 1px solid var(--glass-border); display: flex; justify-content: space-around; align-items: center; z-index: 1000; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; color: #A0AEC0; text-decoration: none; font-size: 10px; gap: 5px; }
+        .nav-item.active { color: var(--accent-orange); }
+        .nav-item svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2; }
+
+        /* PRINT SETTING INVOIS */
+        #print-section { display: none; }
+        @media print {
+            body { background: #fff !important; color: #000 !important; margin: 0; padding: 0; font-family: 'Inter', sans-serif;}
+            .top-header, .container, .bottom-nav, .toast-container, .custom-alert-overlay { display: none !important; }
+            #print-section { display: block !important; padding: 10mm 15mm; position: relative;}
+            .print-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px; border-bottom: 2px solid #000; padding-bottom: 20px;}
+            .print-biz-info h1 { margin: 0 0 5px 0; font-size: 24px; font-weight: 700; color: #000;}
+            .print-biz-info p { margin: 2px 0; font-size: 12px; color: #333; line-height: 1.4; white-space: pre-wrap;}
+            .print-title { text-align: right; }
+            .print-title h2 { font-size: 28px; margin: 0 0 5px 0; color: #000; letter-spacing: 2px; }
+            .print-title p { margin: 0; font-size: 12px; font-weight: bold;}
+            
+            .watermark-paid { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%) rotate(-30deg); font-size: 120px; color: rgba(57, 255, 20, 0.15); font-weight: 800; border: 10px solid rgba(57, 255, 20, 0.15); padding: 20px 40px; border-radius: 20px; display: none; pointer-events: none; z-index: -1; letter-spacing: 10px;}
+            
+            .print-client { margin-bottom: 30px; }
+            .print-client h3 { margin: 0 0 10px 0; font-size: 14px; background: #f2f2f2; padding: 5px 10px; border-left: 3px solid #000;}
+            .print-client p { margin: 4px 0; font-size: 13px; line-height: 1.4; white-space: pre-wrap;}
+            .print-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 13px; }
+            .print-table th, .print-table td { border: 1px solid #ddd; padding: 10px; text-align: left; color: #000;}
+            .print-table th { background-color: #333 !important; color: #fff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact;}
+            .print-table td.money { text-align: right; }
+            .print-total-section { display: flex; justify-content: flex-end; margin-bottom: 40px; }
+            .print-total-box { width: 300px; border: 1px solid #ddd; }
+            .print-total-row { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #ddd; font-size: 13px;}
+            .print-total-row.grand { background: #f2f2f2; font-weight: bold; font-size: 16px; border-bottom: none; -webkit-print-color-adjust: exact; print-color-adjust: exact;}
+            .print-footer { display: flex; justify-content: space-between; font-size: 12px; margin-top: 40px;}
+            .print-bank { width: 45%; }
+            .print-bank h4, .print-terms h4 { margin: 0 0 5px 0; font-size: 13px; text-decoration: underline;}
+            .print-terms { width: 45%; }
+            .print-bank p, .print-terms p { white-space: pre-wrap; line-height: 1.5; color: #333;}
+            .print-sign { margin-top: 60px; text-align: center; width: 200px; border-top: 1px solid #000; padding-top: 5px; font-size: 12px;}
+        }
+    </style>
+</head>
+<body>
+
+    <div id="toastContainer" class="toast-container"></div>
+
+    <header class="top-header">
+        <div class="module-title">BILLING & INVOICE</div>
+        <div style="font-size: 10px; color: #A0AEC0; font-family: 'JetBrains Mono'; font-weight: bold;">DBSS FIN_SYS_V4</div>
+    </header>
+
+    <div class="container">
+        
+        <div class="tab-menu">
+            <button class="tab-btn" onclick="window.location.href='crm.html'">CRM</button>
+            <button class="tab-btn" onclick="window.location.href='sebutharga.html'">QUOTATION</button>
+            <button class="tab-btn active">INVOICE</button>
+            <button class="tab-btn" onclick="window.location.href='po.html'">P. ORDER</button>
+            <button class="tab-btn" onclick="window.location.href='do.html'">DELIVERY</button>
+            <button class="tab-btn" onclick="window.location.href='receipt.html'">RECEIPT</button>
+            <button class="tab-btn" onclick="window.location.href='inventory.html'">INVENTORY</button>
+            <button class="tab-btn" onclick="window.location.href='settings.html'">SETTINGS</button>
+        </div>
+
+        <div class="glass-panel" style="border-left: 3px solid var(--accent-orange);">
+            <div class="panel-header"><h2>1. Invoice Details</h2></div>
+            <div class="input-grid">
+                <div><label style="font-size:10px; color:#A0AEC0;">NAMA KLIEN / PROJEK</label><input type="text" id="invClient" placeholder="Nama Pelanggan"></div>
+                <div><label style="font-size:10px; color:#A0AEC0;">NO TELEFON</label><input type="text" id="invPhone" placeholder="No Tel"></div>
+            </div>
+            <textarea id="invAddress" placeholder="Alamat Penuh Klien" style="min-height: 60px;"></textarea>
+            
+            <div class="input-grid">
+                <div><label style="font-size:10px; color:#A0AEC0;">RUJUKAN QUOTATION</label><input type="text" id="invRef" readonly style="color:var(--accent-orange); background:rgba(0,0,0,0.8);"></div>
+                <div>
+                    <label style="font-size:10px; color:#A0AEC0;">STATUS INVOIS</label>
+                    <select id="invStatus">
+                        <option value="UNPAID">BELUM BAYAR (UNPAID)</option>
+                        <option value="PARTIAL">SEPARA (PARTIAL)</option>
+                        <option value="PAID">SELESAI (PAID)</option>
+                        <option value="OVERDUE">TUNGGAKAN (OVERDUE)</option>
+                        <option value="VOID">BATAL (VOID)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="glass-panel">
+            <div class="panel-header"><h2>2. Billed Items & Kewangan</h2></div>
+            <div class="table-wrapper">
+                <table id="invTable">
+                    <thead><tr><th>Item</th><th>Qty</th><th>RM</th><th>Sub</th></tr></thead>
+                    <tbody id="invItemsBody"></tbody>
+                </table>
+            </div>
+            
+            <div style="border-top: 1px dashed rgba(255,255,255,0.2); margin-top: 15px; padding-top: 15px;">
+                <div class="input-grid">
+                    <div>
+                        <label style="font-size:10px; color:#A0AEC0;">TELAH DIBAYAR / DEPOSIT (RM)</label>
+                        <input type="number" id="invPaid" placeholder="0.00" value="0.00" oninput="calculateBalance()" style="color: var(--accent-lime); font-weight: bold; font-family:'JetBrains Mono', monospace;">
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-size:10px; color:#A0AEC0;">GRAND TOTAL</div>
+                        <div style="font-size: 18px; font-weight: 700; color: #fff; font-family: 'JetBrains Mono', monospace;">RM <span id="invGrandTotal">0.00</span></div>
+                        
+                        <div style="font-size:10px; color:#A0AEC0; margin-top:10px;">BAKI PERLU DIBAYAR</div>
+                        <div style="font-size: 24px; font-weight: 800; color: var(--accent-red); font-family: 'JetBrains Mono', monospace;">RM <span id="invBalanceDisplay">0.00</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+            <button class="btn-diagonal" style="flex: 1; min-width: 100%; background: var(--accent-orange); border-color: var(--accent-orange); color: #000; margin-bottom:0;" onclick="generateInvoicePDF()">JANA PDF & SIMPAN</button>
+            <button class="btn-diagonal" style="flex: 1; background: #25D366; border-color: #25D366; color: #000; margin-bottom:0;" onclick="sendWAReminder()">HANTAR PERINGATAN WA</button>
+        </div>
+
+        <div class="glass-panel" style="margin-top: 20px;">
+            <div class="panel-header"><h2>3. Invoice History Log</h2></div>
+            <div class="table-wrapper">
+                <table id="invHistoryTable">
+                    <thead><tr><th>Inv No</th><th>Klien</th><th>Total / Baki</th><th>Status & Tindakan</th></tr></thead>
+                    <tbody id="invHistoryBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <div id="customModalOverlay" class="custom-alert-overlay">
+        <div class="custom-alert-box">
+            <div class="warning-stripes"></div>
+            <div class="alert-content">
+                <div id="customModalTitle" class="alert-title">AMARAN SISTEM</div>
+                <div id="customModalMessage" class="alert-message">Mesej di sini</div>
+                <div class="alert-actions" id="customModalActions"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="print-section">
+        <div class="watermark-paid" id="watermarkPaid">PAID</div>
+        <div class="print-header">
+            <div class="print-biz-info"><h1 id="pBizName">NAMA SYARIKAT</h1><p id="pBizSSM">SSM</p><p id="pBizAddress">Alamat</p><p id="pBizPhone">Telefon</p></div>
+            <div class="print-title">
+                <h2>INVOICE</h2>
+                <p>No. Invois: <span id="pInvNo" style="color: #FF3B30;"></span></p>
+                <p>Tarikh: <span id="pDate"></span></p>
+                <p>Ruj. Quotation: <span id="pQTRef"></span></p>
+            </div>
+        </div>
+        <div class="print-client"><h3>DI BIL KEPADA:</h3><p><strong id="pClientName">Nama Klien</strong></p><p id="pClientPhone">No Tel</p><p id="pClientAddress">Alamat</p></div>
+        <table class="print-table">
+            <thead><tr><th style="width: 5%;">Bil</th><th style="width: 55%;">Perkara / Deskripsi Perkakasan</th><th style="width: 10%; text-align: center;">Kuantiti</th><th style="width: 15%; text-align: right;">Harga (RM)</th><th style="width: 15%; text-align: right;">Jumlah (RM)</th></tr></thead>
+            <tbody id="pTableBody"></tbody>
+        </table>
+        
+        <div class="print-total-section">
+            <div class="print-total-box">
+                <div class="print-total-row"><span>JUMLAH BESAR</span><span id="pGrandTotalText">RM 0.00</span></div>
+                <div class="print-total-row" style="color: #10B981;"><span>TELAH DIBAYAR</span><span id="pPaidText">RM 0.00</span></div>
+                <div class="print-total-row grand"><span>BAKI KINI</span><span id="pBalanceText" style="color: #FF3B30;">RM 0.00</span></div>
+            </div>
+        </div>
+        
+        <div class="print-footer">
+            <div class="print-bank"><h4>MAKLUMAT PEMBAYARAN</h4><p id="pBizBank">-</p></div>
+            <div class="print-terms"><h4>TERMA & SYARAT</h4><p id="pBizTerms">-</p></div>
+        </div>
+        <div style="display: flex; justify-content: flex-end; margin-top: 50px;"><div class="print-sign">Tandatangan Pengesahan</div></div>
+    </div>
+
+    <nav class="bottom-nav">
+        <a href="dashboard.html" class="nav-item"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" fill="none" stroke="currentColor" stroke-width="2"></path></svg>Command</a>
+        <a href="#" class="nav-item active"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="none" stroke="currentColor" stroke-width="2"></path><polyline points="14 2 14 8 20 8" fill="none" stroke="currentColor" stroke-width="2"></polyline></svg>Workspace</a>
+        <a href="#" class="nav-item"><svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2" fill="none" stroke="currentColor" stroke-width="2"></path></svg>Report</a>
+    </nav>
+
+    <script>
+        let activeItems = []; 
+        let grandTotal = 0; 
+        let currentBalance = 0;
+        let bizProfile = {}; 
+        let savedInvoices = [];
+
+        window.onload = function() {
+            setupLiquidSelects(); // Call Liquid Engine FIRST
+            
+            const savedProfile = localStorage.getItem('dbss_business_profile');
+            if (savedProfile) { bizProfile = JSON.parse(savedProfile); }
+
+            const localInvoices = localStorage.getItem('dbss_saved_invoices');
+            if (localInvoices) { savedInvoices = JSON.parse(localInvoices); }
+            renderHistoryTable();
+
+            // Tangkap data perpindahan dari Sebutharga
+            const transferData = localStorage.getItem('dbss_active_transfer');
+            if (transferData) {
+                const data = JSON.parse(transferData);
+                document.getElementById('invClient').value = data.clientName || '';
+                document.getElementById('invPhone').value = data.clientPhone || '';
+                document.getElementById('invAddress').value = data.clientAddress || '';
+                document.getElementById('invRef').value = data.ref || '';
+                
+                activeItems = data.items || [];
+                renderItemsTable();
+                localStorage.removeItem('dbss_active_transfer'); // Bersihkan token
+                showToast("Data Sebutharga berjaya diimport.", "success");
+            }
+        };
+
+        // ==========================================
+        // UI HELPERS (LIQUID, TOAST, MODAL)
+        // ==========================================
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div'); toast.className = `toast toast-${type}`;
+            let icon = '✅'; if(type === 'warning') icon = '⚠️'; if(type === 'error') icon = '❌';
+            toast.innerHTML = `<span class="toast-icon">${icon}</span> <span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3500);
+        }
+
+        function showCustomAlert(title, message) {
+            document.getElementById('customModalTitle').innerText = title; document.getElementById('customModalTitle').style.color = 'var(--accent-red)';
+            document.getElementById('customModalMessage').innerText = message;
+            document.getElementById('customModalActions').innerHTML = `<button class="btn-alert btn-alert-cancel" onclick="closeCustomModal()">TUTUP</button>`;
+            document.getElementById('customModalOverlay').classList.add('show');
+        }
+
+        function showCustomConfirm(title, message, confirmCallback) {
+            document.getElementById('customModalTitle').innerText = title; document.getElementById('customModalTitle').style.color = 'var(--accent-orange)';
+            document.getElementById('customModalMessage').innerText = message;
+            const actions = document.getElementById('customModalActions'); actions.innerHTML = '';
+            const btnCancel = document.createElement('button'); btnCancel.className = 'btn-alert btn-alert-cancel'; btnCancel.innerText = 'BATAL'; btnCancel.onclick = closeCustomModal;
+            const btnConfirm = document.createElement('button'); btnConfirm.className = 'btn-alert btn-alert-confirm'; btnConfirm.innerText = 'TERUSKAN';
+            btnConfirm.onclick = () => { closeCustomModal(); confirmCallback(); };
+            actions.appendChild(btnCancel); actions.appendChild(btnConfirm);
+            document.getElementById('customModalOverlay').classList.add('show');
+        }
+        function closeCustomModal() { document.getElementById('customModalOverlay').classList.remove('show'); }
+
+        // ENJIN LIQUID YANG DIPERKUATKAN
+        function setupLiquidSelects() {
+            try {
+                document.querySelectorAll('select').forEach(select => {
+                    select.style.display = 'none'; 
+                    const wrapper = document.createElement('div'); wrapper.className = 'liquid-select-wrapper'; wrapper.id = 'liquid-wrap-' + select.id;
+                    const header = document.createElement('div'); header.className = 'liquid-header';
+                    
+                    let selectedText = select.options.length > 0 ? select.options[select.selectedIndex > -1 ? select.selectedIndex : 0].text : "Pilih...";
+                    header.innerHTML = `<span>${selectedText}</span><span style="font-size:10px; margin-left:5px;">▼</span>`;
+                    
+                    const list = document.createElement('div'); list.className = 'liquid-list';
+                    
+                    // Warna Dinamik Khas untuk Status
+                    function updateStatusColor(val, hdr) {
+                        if(select.id !== 'invStatus') return;
+                        let clr = 'var(--accent-orange)';
+                        if(val === 'UNPAID') clr = '#FF3B30';
+                        else if(val === 'PARTIAL') clr = 'var(--accent-teal)';
+                        else if(val === 'PAID') clr = 'var(--accent-lime)';
+                        else if(val === 'OVERDUE') clr = 'var(--accent-orange)';
+                        else if(val === 'VOID') clr = '#6C757D';
+                        hdr.style.color = clr; hdr.style.borderColor = clr;
+                    }
+                    
+                    updateStatusColor(select.value, header);
+
+                    Array.from(select.options).forEach((opt, index) => {
+                        const item = document.createElement('div'); item.className = 'liquid-item';
+                        if(index === select.selectedIndex) item.classList.add('selected');
+                        item.innerText = opt.text;
+                        item.addEventListener('click', (e) => {
+                            e.stopPropagation(); item.classList.add('clicked');
+                            setTimeout(() => {
+                                select.value = opt.value; select.dispatchEvent(new Event('change'));
+                                header.querySelector('span').innerText = opt.text;
+                                updateStatusColor(opt.value, header);
+                                wrapper.classList.remove('open'); wrapper.style.zIndex = "1";
+                                
+                                // Reset z-index untuk panel bapa bila ditutup
+                                const parentPanel = wrapper.closest('.glass-panel');
+                                if(parentPanel) parentPanel.style.zIndex = "1";
+                                
+                                list.querySelectorAll('.liquid-item').forEach(i => i.classList.remove('selected', 'clicked'));
+                                item.classList.add('selected');
+                            }, 250);
+                        });
+                        list.appendChild(item);
+                    });
+                    
+                    header.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        // Tutup dropdown lain jika terbuka
+                        document.querySelectorAll('.liquid-select-wrapper').forEach(w => { 
+                            if(w !== wrapper) { 
+                                w.classList.remove('open'); 
+                                w.style.zIndex = "1"; 
+                                const p = w.closest('.glass-panel');
+                                if(p) p.style.zIndex = "1";
+                            } 
+                        });
+                        const isOpen = wrapper.classList.toggle('open');
+                        wrapper.style.zIndex = isOpen ? "99" : "1";
+                        
+                        // FIX: Angkat Panel Bapa supaya senarai tak terlindung di belakang panel seterusnya
+                        const parentPanel = wrapper.closest('.glass-panel');
+                        if(parentPanel) {
+                            parentPanel.style.position = "relative";
+                            parentPanel.style.zIndex = isOpen ? "99" : "1";
+                        }
+                    });
+                    
+                    wrapper.appendChild(header); wrapper.appendChild(list); 
+                    select.parentNode.insertBefore(wrapper, select.nextSibling);
+                });
+                
+                // Tutup apabila klik di luar
+                document.addEventListener('click', () => { 
+                    document.querySelectorAll('.liquid-select-wrapper').forEach(w => { 
+                        w.classList.remove('open'); 
+                        w.style.zIndex = "1"; 
+                        const p = w.closest('.glass-panel');
+                        if(p) p.style.zIndex = "1";
+                    }); 
+                });
+            } catch(e) {
+                console.error("SYS.UI.ERR: Liquid Select Gagal Dimuatkan", e);
+                document.querySelectorAll('select').forEach(s => s.style.display = 'block'); // Fallback jika ralat
+            }
+        }
+
+        // ==========================================
+        // LOGIK KEWANGAN (PAYMENT TRACKER)
+        // ==========================================
+        function calculateBalance() {
+            const paid = parseFloat(document.getElementById('invPaid').value) || 0;
+            currentBalance = grandTotal - paid;
+            document.getElementById('invBalanceDisplay').innerText = currentBalance.toFixed(2);
+        }
+
+        function renderItemsTable() {
+            const tbody = document.getElementById('invItemsBody'); tbody.innerHTML = ''; grandTotal = 0;
+            if (activeItems.length === 0) { tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">Tiada data barangan.</td></tr>`; return; }
+            activeItems.forEach(item => {
+                grandTotal += item.total;
+                let printItemName = item.displayType === 'subitem' ? `<span style="color:#A0AEC0;">↳ ${item.name}</span>` : `<strong>${item.name}</strong>`;
+                let printPrice = item.displayType === 'subitem' ? `<span style="font-size:10px; color:#A0AEC0;">(Pakej)</span>` : item.price.toFixed(2);
+                let printSub = item.displayType === 'subitem' ? `-` : item.total.toFixed(2);
+                
+                tbody.insertRow().innerHTML = `<td>${printItemName}</td><td>${item.qty}</td><td>${printPrice}</td><td style="color:var(--accent-lime); font-weight:bold;">${printSub}</td>`;
+            });
+            document.getElementById('invGrandTotal').innerText = grandTotal.toFixed(2);
+            calculateBalance();
+        }
+
+        function renderHistoryTable() {
+            const tbody = document.getElementById('invHistoryBody'); tbody.innerHTML = '';
+            if (savedInvoices.length === 0) { tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#A0AEC0; font-size:11px;">TIADA REKOD INVOIS</td></tr>`; return; }
+            savedInvoices.forEach((inv, index) => {
+                let badgeClass = '';
+                if(inv.status === 'PAID') badgeClass = 'status-paid';
+                else if(inv.status === 'PARTIAL') badgeClass = 'status-partial';
+                else if(inv.status === 'OVERDUE') badgeClass = 'status-overdue';
+                else if(inv.status === 'VOID') badgeClass = 'status-void';
+                else badgeClass = 'status-unpaid';
+                
+                const badge = `<span class="status-badge ${badgeClass}">${inv.status}</span>`;
+                
+                // JAMBATAN RESIT (CUMA WUJUD JIKA STATUS PAID/PARTIAL)
+                let resitBtn = '';
+                if(inv.status === 'PAID' || inv.status === 'PARTIAL') {
+                    resitBtn = `<button style="background: rgba(57,255,20,0.2); color: var(--accent-lime); border: none; border-radius: 4px; padding: 4px 6px; cursor: pointer; font-size: 10px; margin-top:5px; width: 100%; font-weight:bold;" onclick="hantarKeResit(${index})">JANA RESIT</button>`;
+                }
+
+                tbody.insertRow().innerHTML = `
+                    <td><div style="font-weight:bold; color:var(--accent-orange); font-size:11px;">${inv.invNo}</div><div style="font-size:10px; color:#A0AEC0;">${inv.date}</div></td>
+                    <td><div style="font-size:12px; font-weight:bold; white-space:normal; line-height:1.2;">${inv.clientName}</div></td>
+                    <td>
+                        <div style="color:var(--text-main); font-size:11px;">Tot: RM${inv.total.toFixed(0)}</div>
+                        <div style="color:var(--accent-red); font-size:11px; font-weight:bold;">Bal: RM${(inv.balance || 0).toFixed(0)}</div>
+                    </td>
+                    <td>${badge} ${resitBtn}</td>
+                `;
+            });
+        }
+
+        // ==========================================
+        // TELEMETRI & REMINDERS
+        // ==========================================
+        function sendWAReminder() {
+            const client = document.getElementById('invClient').value;
+            let phone = document.getElementById('invPhone').value;
+            const status = document.getElementById('invStatus').value;
+            
+            if(!client || !phone) return showCustomAlert("RALAT", "Sila masukkan nama dan nombor telefon klien terlebih dahulu.");
+            
+            phone = phone.replace(/[^0-9]/g, ''); if (phone.startsWith('0')) phone = '60' + phone.substring(1);
+            let waMessage = "";
+
+            if(status === 'PAID') {
+                waMessage = `*PENGESAHAN BAYARAN: ${bizProfile.name || "SYARIKAT KAMI"}*\n\nTerima kasih *${client}*!\nKami telah menerima bayaran penuh untuk invois anda. Resit rasmi akan disusuli sebentar lagi.\n\nTerima kasih kerana berurusan dengan kami.`;
+            } else {
+                waMessage = `*PERINGATAN MESRA: ${bizProfile.name || "SYARIKAT KAMI"}*\n\nSalam sejahtera *${client}*,\nIni adalah rujukan pantas bagi status Invois anda.\n\n*Jumlah Invois:* RM ${grandTotal.toFixed(2)}\n*Telah Dibayar:* RM ${parseFloat(document.getElementById('invPaid').value).toFixed(2)}\n*Baki Semasa:* RM ${currentBalance.toFixed(2)}\n\nSila rujuk dokumen invois dan maklumkan kepada kami setelah bayaran dibuat.\n\nTerima kasih.`;
+            }
+
+            window.open(`https://wa.me/${phone}?text=${encodeURIComponent(waMessage)}`, '_blank');
+        }
+
+        async function sendTelegramAudit(invNo, client, paidAmt) {
+            if(!bizProfile.tgBotToken) return;
+            // Guna Audit Chat, jika tiada guna Group Chat
+            let chatId = bizProfile.tgAuditChatId || bizProfile.tgGroupChatId;
+            if(!chatId) return;
+
+            let msg = `💰 *BAYARAN DITERIMA!*\n\nKlien: ${client}\nInvois: ${invNo}\nKutipan: *RM ${parseFloat(paidAmt).toFixed(2)}*\n\n_Auto-Audit DBSS OS_`;
+
+            try {
+                await fetch(`https://api.telegram.org/bot${bizProfile.tgBotToken}/sendMessage`, {
+                    method: 'POST', headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ chat_id: chatId, text: msg, parse_mode: 'Markdown' })
+                });
+            } catch(e) { console.log("Gagal hantar audit telegram."); }
+        }
+
+        // ==========================================
+        // JAMBATAN RESIT
+        // ==========================================
+        function hantarKeResit(index) {
+            const inv = savedInvoices[index];
+            showCustomConfirm("JANA RESIT", `Pindahkan data ${inv.invNo} ke modul Resit?`, () => {
+                localStorage.setItem('dbss_active_receipt', JSON.stringify(inv));
+                window.location.href = 'receipt.html';
+            });
+        }
+
+        // ==========================================
+        // PDF GENERATOR
+        // ==========================================
+        function generateInvoicePDF() {
+            if(activeItems.length === 0) return showCustomAlert("RALAT", "Sila jana data melalui sejarah Quotation terlebih dahulu.");
+            
+            const client = document.getElementById('invClient').value; 
+            const phone = document.getElementById('invPhone').value; 
+            const address = document.getElementById('invAddress').value;
+            const status = document.getElementById('invStatus').value; 
+            const qtRef = document.getElementById('invRef').value || "-";
+            const paid = parseFloat(document.getElementById('invPaid').value) || 0;
+            
+            const todayStr = new Date().toLocaleDateString('ms-MY'); 
+            const invNo = "INV-" + Date.now().toString().slice(-6);
+
+            document.getElementById('pBizName').innerText = bizProfile.name || "NAMA SYARIKAT";
+            document.getElementById('pBizSSM').innerText = "SSM: " + (bizProfile.ssm || "-");
+            document.getElementById('pBizAddress').innerText = bizProfile.address || "-";
+            document.getElementById('pBizPhone').innerText = "Tel: " + (bizProfile.phone || "-");
+            document.getElementById('pBizBank').innerText = bizProfile.bank || "-";
+            document.getElementById('pBizTerms').innerText = bizProfile.terms || "-";
+
+            document.getElementById('pInvNo').innerText = invNo; 
+            document.getElementById('pDate').innerText = todayStr; 
+            document.getElementById('pQTRef').innerText = qtRef;
+            document.getElementById('pClientName').innerText = client; 
+            document.getElementById('pClientPhone').innerText = phone; 
+            document.getElementById('pClientAddress').innerText = address || "";
+            
+            // Dynamic Watermark
+            document.getElementById('watermarkPaid').style.display = status === 'PAID' ? 'block' : 'none';
+
+            const pTableBody = document.getElementById('pTableBody'); pTableBody.innerHTML = ''; 
+            activeItems.forEach((item, index) => { 
+                let printItemName = item.displayType === 'subitem' ? `<span style="padding-left:15px; color:#475569;">↳ ${item.name}</span>` : `<strong>${item.name}</strong>`;
+                let printPrice = item.displayType === 'subitem' ? `<em style="color:#94A3B8; font-size:10px;">FOC</em>` : item.price.toFixed(2);
+                let printSub = item.displayType === 'subitem' ? `-` : `<strong>${item.total.toFixed(2)}</strong>`;
+                pTableBody.insertRow().innerHTML = `<td style="text-align:center;">${index + 1}</td><td>${printItemName}</td><td style="text-align:center;">${item.qty}</td><td class="money">${printPrice}</td><td class="money">${printSub}</td>`; 
+            });
+
+            // Financial Print
+            document.getElementById('pGrandTotalText').innerText = "RM " + grandTotal.toFixed(2);
+            document.getElementById('pPaidText').innerText = "RM " + paid.toFixed(2);
+            document.getElementById('pBalanceText').innerText = "RM " + currentBalance.toFixed(2);
+
+            // Simpan Sejarah Lengkap
+            savedInvoices.unshift({ 
+                invNo: invNo, qtRef: qtRef, date: todayStr, 
+                clientName: client, clientPhone: phone, clientAddress: address,
+                total: grandTotal, paid: paid, balance: currentBalance, 
+                status: status, items: [...activeItems] 
+            });
+            localStorage.setItem('dbss_saved_invoices', JSON.stringify(savedInvoices)); 
+            
+            // Auto Telegram Ping
+            if(status === 'PAID' || status === 'PARTIAL') {
+                sendTelegramAudit(invNo, client, paid);
+            }
+
+            renderHistoryTable();
+            showToast("Invois disimpan dan dijana.");
+            
+            setTimeout(() => { window.print(); }, 500); 
+        }
+    </script>
+</body>
+</html>

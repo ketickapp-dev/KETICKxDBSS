@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DBSS OS | Command Center</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg-dark: #0D1B2A; --glass-bg: rgba(18, 18, 18, 0.6); --glass-border: rgba(255, 255, 255, 0.1); --text-main: #FFFFFF; --accent-blue: #007BFF; --accent-lime: #39FF14; --accent-orange: #FFA500; }
+        body { font-family: 'Inter', sans-serif; background-color: var(--bg-dark); color: var(--text-main); margin: 0; padding: 0 0 90px 0; box-sizing: border-box; }
+        .top-header { padding: 15px 20px; backdrop-filter: blur(10px); border-bottom: 1px solid var(--glass-border); position: sticky; top: 0; z-index: 100; display: flex; justify-content: space-between; align-items: center; background: rgba(13, 27, 42, 0.8); }
+        .module-title { font-weight: 700; font-size: 16px; color: var(--accent-blue); letter-spacing: 1px;}
+        .live-status { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--accent-lime); animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+        
+        main { padding: 15px; max-width: 800px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .glass-card { background: var(--glass-bg); backdrop-filter: blur(12px); border: 1px solid var(--glass-border); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; justify-content: center; }
+        .card-large { grid-column: span 2; }
+        .stat-label { font-size: 12px; color: #A0AEC0; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; margin-bottom: 5px; }
+        .stat-value { font-size: 28px; font-weight: 700; color: var(--accent-lime); }
+        
+        .action-btn { background: var(--accent-blue); color: #fff; padding: 15px; border-radius: 8px; text-align: center; text-decoration: none; font-weight: 700; font-family: 'JetBrains Mono', monospace; border: none; display: block; margin-top: 10px; cursor: pointer; }
+        
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; height: 70px; background: rgba(13, 27, 42, 0.9); backdrop-filter: blur(15px); border-top: 1px solid var(--glass-border); display: flex; justify-content: space-around; align-items: center; z-index: 1000; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; color: #A0AEC0; text-decoration: none; font-size: 10px; gap: 5px; }
+        .nav-item.active { color: var(--accent-blue); }
+        .nav-item svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2; }
+    </style>
+</head>
+<body>
+    <header class="top-header">
+        <div class="module-title">DBSS COMMAND</div>
+        <div class="live-status">SYS_ONLINE</div>
+    </header>
+
+    <main>
+        <div class="glass-card card-large">
+            <div class="stat-label">TOTAL PROJECTION (RM)</div>
+            <div class="stat-value" id="valProjection">0.00</div>
+            <div style="font-size: 10px; color: #A0AEC0; margin-top: 5px; font-style: italic;">Anggaran Kasar Nilai Quotation</div>
+        </div>
+
+        <div class="glass-card">
+            <div class="stat-label">KLIEN AKTIF</div>
+            <div class="stat-value" id="valClients">00</div>
+        </div>
+
+        <div class="glass-card">
+            <div class="stat-label">QUOTATIONS</div>
+            <div class="stat-value" id="valQuotes">00</div>
+        </div>
+
+        <div class="glass-card card-large">
+            <div class="stat-label">System Workspace</div>
+            <div style="color: #A0AEC0; font-size: 13px; margin-bottom: 10px; line-height: 1.4;">Akses modul CRM, Sebutharga, Invois, DO, PO & Inventori.</div>
+            <a href="crm.html" class="action-btn">BUKA WORKSPACE</a>
+        </div>
+    </main>
+
+    <nav class="bottom-nav">
+        <a href="dashboard.html" class="nav-item active">
+            <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" fill="none" stroke="currentColor" stroke-width="2"></path></svg>
+            Command
+        </a>
+        <a href="crm.html" class="nav-item">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="none" stroke="currentColor" stroke-width="2"></path><polyline points="14 2 14 8 20 8" fill="none" stroke="currentColor" stroke-width="2"></polyline></svg>
+            Workspace
+        </a>
+        <a href="#" class="nav-item">
+            <svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2" fill="none" stroke="currentColor" stroke-width="2"></path></svg>
+            Report
+        </a>
+    </nav>
+
+    <script>
+        // Fungsi untuk menyegerakkan data Dashboard dengan LocalStorage
+        window.onload = function() {
+            // 1. Kira Total Projection & Kuantiti Quotation
+            let totalProjection = 0;
+            let totalQuotations = 0;
+            const savedQuotes = localStorage.getItem('dbss_saved_quotes');
+            
+            if (savedQuotes) {
+                const quotes = JSON.parse(savedQuotes);
+                totalQuotations = quotes.length;
+                
+                quotes.forEach(q => {
+                    // Pastikan ia dibaca sebagai nombor
+                    totalProjection += parseFloat(q.total) || 0;
+                });
+            }
+
+            // 2. Kira Jumlah Klien Aktif di CRM (Hanya jenis 'CLIENT')
+            let totalClients = 0;
+            const crmData = localStorage.getItem('dbss_crm_database');
+            
+            if (crmData) {
+                const crm = JSON.parse(crmData);
+                // Tapis (filter) supaya hanya mengira Pelanggan, bukan Pembekal
+                const clients = crm.filter(c => c.type === 'CLIENT');
+                totalClients = clients.length;
+            }
+
+            // 3. Suntik dan Paparkan Data Ke Skrin UI
+            // Format Total Projection ke bentuk RM XX,XXX.XX
+            document.getElementById('valProjection').innerText = totalProjection.toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            
+            // Format jumlah Klien dan Quotation supaya ada nombor '0' di depan jika bawah 10 (contoh: 03, 09)
+            document.getElementById('valClients').innerText = totalClients < 10 ? '0' + totalClients : totalClients;
+            document.getElementById('valQuotes').innerText = totalQuotations < 10 ? '0' + totalQuotations : totalQuotations;
+        };
+    </script>
+</body>
+</html>
