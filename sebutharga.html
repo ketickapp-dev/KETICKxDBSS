@@ -154,10 +154,11 @@
             .print-client p { margin: 3px 0 0 0; font-size: 12px; line-height: 1.5; color: #475569; white-space: pre-wrap;}
 
             .print-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 12px; }
-            .print-table th { background-color: #0A192F !important; color: #FFFFFF !important; padding: 10px 12px; text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; border: none;}
-            .print-table th:first-child { border-radius: 6px 0 0 6px; }
-            .print-table th:last-child { border-radius: 0 6px 6px 0; }
-            .print-table td { border-bottom: 1px solid #E2E8F0; padding: 12px 12px; color: #334155; vertical-align: top;}
+            .print-table th { background-color: #0A192F !important; color: #FFFFFF !important; padding: 10px 12px; text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; border: none; white-space: normal;}
+            
+            /* KEMASKINI CSS CETAKAN: Membenarkan deskripsi panjang turun ke bawah */
+            .print-table td { border-bottom: 1px solid #E2E8F0; padding: 12px 12px; color: #334155; vertical-align: top; white-space: normal; overflow-wrap: break-word; }
+            
             .print-table td.money { text-align: right; }
 
             .print-total-section { display: flex; justify-content: flex-end; margin-bottom: 30px; }
@@ -346,89 +347,6 @@
         </div>
     </div>
 
-    <div id="print-section">
-        <div class="print-accent-bar"></div>
-        <div class="watermark-dbss">dBSS</div>
-        
-        <div class="print-header">
-            <div class="print-company-area">
-                <div class="print-logo-box"><img id="pLogo" src="" alt="Company Logo" style="display: none;"></div>
-                <div class="print-biz-info">
-                    <h1 id="pBizName">NAMA SYARIKAT</h1>
-                    <p id="pBizSSM">SSM</p>
-                    <p id="pBizAddress">Alamat</p>
-                    <p id="pBizPhone">Telefon</p>
-                </div>
-            </div>
-            <div class="print-title-area">
-                <h2>QUOTATION</h2>
-                <div class="print-doc-meta">
-                    <div><span>Ref No:</span> <strong id="pRef">QT-000000</strong></div>
-                    <div><span>Date:</span> <strong id="pDate">DD/MM/YYYY</strong></div>
-                    <div><span>Validity:</span> <strong id="pValid">14 Hari</strong></div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="print-client">
-            <span class="print-client-label">PREPARED FOR:</span>
-            <strong id="pClientName">Nama Klien</strong>
-            <p id="pClientPhone">No Tel</p>
-            <p id="pClientAddress">Alamat</p>
-        </div>
-        
-        <table class="print-table">
-            <thead>
-                <tr>
-                    <th style="width: 5%; text-align: center;">#</th>
-                    <th style="width: 50%;">Item Description</th>
-                    <th style="width: 15%; text-align: center;">Qty</th>
-                    <th style="width: 15%; text-align: right;">Unit Price (RM)</th>
-                    <th style="width: 15%; text-align: right;">Total (RM)</th>
-                </tr>
-            </thead>
-            <tbody id="pTableBody"></tbody>
-        </table>
-        
-        <div class="print-total-section">
-            <div class="print-total-box">
-                <div class="print-total-row"><span>Subtotal</span><span id="pSubTotal">RM 0.00</span></div>
-                <div class="print-total-row discount" id="pDiscountRow" style="display: none;"><span>Discount</span><span id="pDiscountAmt">- RM 0.00</span></div>
-                <div class="print-total-row tax" id="pTaxRow" style="display: none;"><span>SST (8%)</span><span id="pTaxAmt">+ RM 0.00</span></div>
-                <div class="print-total-row grand"><span>GRAND TOTAL</span><span id="pGrandTotal">RM 0.00</span></div>
-            </div>
-        </div>
-        
-        <div class="print-notes-section" id="pNotesSection" style="display: none;">
-            <h4>Project Notes / Terms</h4>
-            <p id="pNotesText">-</p>
-        </div>
-
-        <div class="print-footer-grid">
-            <div class="print-footer-box">
-                <h4>Payment Details</h4>
-                <p id="pBizBank">Please update bank details in Settings.</p>
-            </div>
-            <div class="print-footer-box">
-                <h4>Standard Terms & Conditions</h4>
-                <p id="pBizTerms">Please update terms in Settings.</p>
-            </div>
-        </div>
-        
-        <div class="print-sign-container">
-            <div class="print-sign-box">
-                <div class="print-sign-img"><img id="pSignature" src="" alt="Signature" style="display: none;"></div>
-                <div class="print-sign-line">Authorized Signature</div>
-            </div>
-        </div>
-    </div>
-
-    <nav class="bottom-nav">
-        <a href="dashboard.html" class="nav-item"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" fill="none" stroke="currentColor" stroke-width="2"></path></svg>Command</a>
-        <a href="#" class="nav-item active"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="none" stroke="currentColor" stroke-width="2"></path><polyline points="14 2 14 8 20 8" fill="none" stroke="currentColor" stroke-width="2"></polyline></svg>Workspace</a>
-        <a href="#" class="nav-item"><svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2" fill="none" stroke="currentColor" stroke-width="2"></path></svg>Report</a>
-    </nav>
-
     <script src="assets/js/db/db-dahua-camera.js"></script>
     <script src="assets/js/db/db-dahua-recorder.js"></script>
     <script src="assets/js/db/db-dahua-network.js"></script>
@@ -468,7 +386,6 @@
             filterDatalist();
 
             // 3. BARU KITA SETUP LIQUID SELECT! 
-            // Memandangkan kotak kategori dah diisi, fungsi Liquid akan tangkap semua data itu dengan jayanya.
             setupLiquidSelects();
 
             // 4. Muatkan Baki Data
@@ -900,7 +817,9 @@
             itemsList.forEach((item, index) => { 
                 // DBSS CORE: Mengambil padanan deskripsi daripada DB Inventori
                 let matchedInv = dbItems.find(i => `${i.id} - ${i.name}` === item.name || i.name === item.name);
-                let descText = (matchedInv && matchedInv.desc) ? `<br><span style="font-size:10px; color:#64748B; font-weight:normal; font-style:italic; line-height:1.3; display:block; margin-top:4px;">${matchedInv.desc}</span>` : '';
+                
+                // Tambahan CSS overflow-wrap:break-word di sini sebagai pelindung tambahan
+                let descText = (matchedInv && matchedInv.desc) ? `<br><span style="font-size:10px; color:#64748B; font-weight:normal; font-style:italic; line-height:1.4; display:block; margin-top:4px; white-space:normal; overflow-wrap:break-word;">${matchedInv.desc}</span>` : '';
 
                 let isSub = item.displayType === 'subitem';
                 let printItemName = isSub ? `<span style="padding-left:15px; color:#475569;">↳ ${item.name}</span>` : `<strong style="color:#0F172A;">${item.name}</strong>${descText}`;
