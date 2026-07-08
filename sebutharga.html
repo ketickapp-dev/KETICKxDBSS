@@ -191,7 +191,7 @@
 
     <header class="top-header">
         <div class="module-title" id="mainTitle">QUOTATION (DRAF)</div>
-        <div style="font-size: 10px; color: #A0AEC0; font-family: 'JetBrains Mono'; font-weight:bold;">DBSS_ADV_QUOTE_V7</div>
+        <div style="font-size: 10px; color: #A0AEC0; font-family: 'JetBrains Mono'; font-weight:bold;">DBSS_ADV_QUOTE_V7.2</div>
     </header>
 
     <div class="container">
@@ -496,7 +496,6 @@
             try { invDB = JSON.parse(localStorage.getItem('dbss_inventory')) || []; } catch(e) {}
             let searchDB = [...invDB, ...dbItems]; 
             
-            // Fasa 1: Cari Padanan Tepat (Exact Match)
             for (let i of searchDB) {
                 if(!i) continue;
                 let iId = (i.id || '').toString().trim();
@@ -505,12 +504,11 @@
                 if (targetName === combo || targetName === iName) return i;
             }
             
-            // Fasa 2: Cari Padanan Pintar (Sekiranya user tukar nama di kotak input)
             for (let i of searchDB) {
                 if(!i) continue;
                 let iId = (i.id || '').toString().trim();
                 let iName = (i.name || '').toString().trim();
-                if (iId && targetName.startsWith(iId)) return i; // Janji bermula dengan ID yang betul
+                if (iId && targetName.startsWith(iId)) return i; 
                 if (iName && targetName.includes(iName)) return i;
             }
             return null;
@@ -752,7 +750,6 @@
 
             let subTotal = displayType === 'subitem' ? 0 : (qty * price);
 
-            // DBSS CORE: Menambah data 'desc' terus ke dalam array semasa proses simpanan Draf
             itemsList.push({ name, qty, price, total: subTotal, displayType, rawCost, desc: itemDesc });
             renderTable();
             document.getElementById('itemName').value = ''; document.getElementById('itemQty').value = ''; document.getElementById('itemPrice').value = '';
@@ -860,7 +857,7 @@
             });
         }
 
-        // --- CORE PRINT PDF (SAFE MODE) ---
+        // --- CORE PRINT PDF (SAFE MODE DENGAN SUB-ITEM DESK) ---
         function generatePDF(type) {
             try {
                 if(itemsList.length === 0) return showCustomAlert("RALAT", "Sila masukkan sekurang-kurangnya 1 barang untuk menjana PDF.");
@@ -895,25 +892,28 @@
                 const pTableBody = document.getElementById('pTableBody'); pTableBody.innerHTML = ''; 
                 
                 itemsList.forEach((item, index) => { 
-                    // Semak deskripsi yang telah disimpan di dalam memori draft terlebih dahulu
                     let finalDesc = item.desc;
-                    
-                    // Jika tiada, lakukan fallback Carian Pintar
                     if (!finalDesc) {
                         let matchedInv = findInventoryItem(item.name);
                         if (matchedInv && matchedInv.desc) finalDesc = matchedInv.desc;
                     }
                     
-                    let descText = finalDesc ? `<br><span style="font-size:10px; color:#64748B; font-weight:normal; font-style:italic; line-height:1.4; display:block; margin-top:4px; white-space:normal; overflow-wrap:break-word; word-wrap:break-word; word-break:break-word;">${finalDesc}</span>` : '';
-
                     let isSub = item.displayType === 'subitem';
-                    let printItemName = isSub ? `<span style="padding-left:15px; color:#475569;">↳ ${item.name || 'Item'}</span>` : `<strong style="color:#0F172A;">${item.name || 'Item'}</strong>${descText}`;
+                    
+                    // DBSS CORE: Jika sub-item, kita tambah margin-left supaya deskripsi nampak masuk sikit
+                    let descIndent = isSub ? "margin-left: 18px;" : "";
+                    
+                    let descText = finalDesc ? `<br><span style="font-size:10px; color:#64748B; font-weight:normal; font-style:italic; line-height:1.4; display:block; margin-top:4px; ${descIndent} white-space:normal; overflow-wrap:break-word; word-wrap:break-word; word-break:break-word;">${finalDesc}</span>` : '';
+
+                    let printItemName = isSub 
+                        ? `<span style="color:#475569;">&nbsp;&nbsp;&nbsp;↳ ${item.name || 'Item'}</span>${descText}` 
+                        : `<strong style="color:#0F172A;">${item.name || 'Item'}</strong>${descText}`;
                     
                     let safePrice = parseFloat(item.price) || 0; let safeSub = parseFloat(item.total) || 0;
                     let printPrice = isSub ? `<em style="color:#94A3B8; font-size:10px;">FOC/Pakej</em>` : safePrice.toFixed(2);
                     let printSub = isSub ? `-` : `<strong>${safeSub.toFixed(2)}</strong>`;
                     
-                    pTableBody.insertRow().innerHTML = `<td style="text-align:center; color:#64748B;">${index + 1}</td><td style="white-space:normal; word-wrap:break-word; word-break:break-word;">${printItemName}</td><td style="text-align:center;">${item.qty || 0}</td><td class="money">${printPrice}</td><td class="money">${printSub}</td>`; 
+                    pTableBody.insertRow().innerHTML = `<td style="text-align:center; color:#64748B; vertical-align:top;">${index + 1}</td><td style="white-space:normal; word-wrap:break-word; word-break:break-word; vertical-align:top;">${printItemName}</td><td style="text-align:center; vertical-align:top;">${item.qty || 0}</td><td class="money" style="vertical-align:top;">${printPrice}</td><td class="money" style="vertical-align:top;">${printSub}</td>`; 
                 });
                 
                 document.getElementById('pSubTotal').innerText = "RM " + (calcSubTotal || 0).toFixed(2);
