@@ -150,7 +150,6 @@
             .print-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 12px; table-layout: fixed;}
             .print-table th { background-color: #0A192F !important; color: #FFFFFF !important; padding: 10px 12px; text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; border: none; white-space: normal;}
             
-            /* SANGAT PENTING: Memaksa teks turun ke bawah untuk sel (td) */
             .print-table td { 
                 border-bottom: 1px solid #E2E8F0; 
                 padding: 12px 12px; 
@@ -488,6 +487,35 @@
             }
         };
 
+        // --- PENCARI INVENTORI PINTAR (FUZZY LOGIC) ---
+        function findInventoryItem(targetName) {
+            if (!targetName) return null;
+            targetName = targetName.toString().trim();
+            
+            let invDB = [];
+            try { invDB = JSON.parse(localStorage.getItem('dbss_inventory')) || []; } catch(e) {}
+            let searchDB = [...invDB, ...dbItems]; 
+            
+            // Fasa 1: Cari Padanan Tepat (Exact Match)
+            for (let i of searchDB) {
+                if(!i) continue;
+                let iId = (i.id || '').toString().trim();
+                let iName = (i.name || '').toString().trim();
+                let combo = iId ? `${iId} - ${iName}` : iName;
+                if (targetName === combo || targetName === iName) return i;
+            }
+            
+            // Fasa 2: Cari Padanan Pintar (Sekiranya user tukar nama di kotak input)
+            for (let i of searchDB) {
+                if(!i) continue;
+                let iId = (i.id || '').toString().trim();
+                let iName = (i.name || '').toString().trim();
+                if (iId && targetName.startsWith(iId)) return i; // Janji bermula dengan ID yang betul
+                if (iName && targetName.includes(iName)) return i;
+            }
+            return null;
+        }
+
         // --- UI HELPERS ---
         function showToast(message, type = 'success') {
             const container = document.getElementById('toastContainer');
@@ -692,10 +720,17 @@
         }
 
         function autoFillPrice() {
-            const selectedValue = document.getElementById('itemName').value; const markup = parseFloat(document.getElementById('quoteMarkup').value) || 0; const priceInput = document.getElementById('itemPrice');
-            const foundItem = dbItems.find(item => item && `${item.id || ''} - ${item.name || ''}` === selectedValue);
-            if (foundItem && parseFloat(foundItem.cost) > 0) { priceInput.value = (parseFloat(foundItem.cost) + (parseFloat(foundItem.cost) * (markup / 100))).toFixed(2); } 
-            else { priceInput.value = ""; }
+            const selectedValue = document.getElementById('itemName').value; 
+            const markup = parseFloat(document.getElementById('quoteMarkup').value) || 0; 
+            const priceInput = document.getElementById('itemPrice');
+            
+            const foundItem = findInventoryItem(selectedValue);
+            
+            if (foundItem && parseFloat(foundItem.cost) > 0) { 
+                priceInput.value = (parseFloat(foundItem.cost) + (parseFloat(foundItem.cost) * (markup / 100))).toFixed(2); 
+            } else { 
+                priceInput.value = ""; 
+            }
         }
 
         function addItem() {
@@ -707,12 +742,18 @@
             if (!name || isNaN(qty) || isNaN(price)) return showToast("Sila lengkapkan nama, qty dan harga.", "error");
             
             let rawCost = 0;
-            const foundItem = dbItems.find(i => i && (`${i.id || ''} - ${i.name || ''}` === name || i.name === name));
-            if (foundItem && parseFloat(foundItem.cost) > 0) { rawCost = parseFloat(foundItem.cost); }
+            let itemDesc = "";
+            let foundItem = findInventoryItem(name);
+            
+            if (foundItem) { 
+                if(parseFloat(foundItem.cost) > 0) rawCost = parseFloat(foundItem.cost); 
+                if(foundItem.desc) itemDesc = foundItem.desc;
+            }
 
             let subTotal = displayType === 'subitem' ? 0 : (qty * price);
 
-            itemsList.push({ name, qty, price, total: subTotal, displayType, rawCost });
+            // DBSS CORE: Menambah data 'desc' terus ke dalam array semasa proses simpanan Draf
+            itemsList.push({ name, qty, price, total: subTotal, displayType, rawCost, desc: itemDesc });
             renderTable();
             document.getElementById('itemName').value = ''; document.getElementById('itemQty').value = ''; document.getElementById('itemPrice').value = '';
             showToast("Item ditambah ke Draf.", "success");
@@ -854,16 +895,16 @@
                 const pTableBody = document.getElementById('pTableBody'); pTableBody.innerHTML = ''; 
                 
                 itemsList.forEach((item, index) => { 
-                    let matchedInv = null;
-                    if(dbItems && Array.isArray(dbItems)) {
-                        matchedInv = dbItems.find(i => {
-                            if(!i) return false;
-                            let iId = i.id || ''; let iName = i.name || ''; let tgName = item.name || '';
-                            return (`${iId} - ${iName}` === tgName) || (iName === tgName);
-                        });
+                    // Semak deskripsi yang telah disimpan di dalam memori draft terlebih dahulu
+                    let finalDesc = item.desc;
+                    
+                    // Jika tiada, lakukan fallback Carian Pintar
+                    if (!finalDesc) {
+                        let matchedInv = findInventoryItem(item.name);
+                        if (matchedInv && matchedInv.desc) finalDesc = matchedInv.desc;
                     }
                     
-                    let descText = (matchedInv && matchedInv.desc) ? `<br><span style="font-size:10px; color:#64748B; font-weight:normal; font-style:italic; line-height:1.4; display:block; margin-top:4px; white-space:normal; overflow-wrap:break-word; word-wrap:break-word; word-break:break-word;">${matchedInv.desc}</span>` : '';
+                    let descText = finalDesc ? `<br><span style="font-size:10px; color:#64748B; font-weight:normal; font-style:italic; line-height:1.4; display:block; margin-top:4px; white-space:normal; overflow-wrap:break-word; word-wrap:break-word; word-break:break-word;">${finalDesc}</span>` : '';
 
                     let isSub = item.displayType === 'subitem';
                     let printItemName = isSub ? `<span style="padding-left:15px; color:#475569;">↳ ${item.name || 'Item'}</span>` : `<strong style="color:#0F172A;">${item.name || 'Item'}</strong>${descText}`;
