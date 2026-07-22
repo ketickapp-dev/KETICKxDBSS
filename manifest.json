@@ -1,0 +1,22 @@
+{
+  "name": "DBSS OS Command Center",
+  "short_name": "DBSS OS",
+  "description": "Sistem Pengurusan Pintar (Inventori, Sebutharga, Invois, CRM) bertaraf Enterprise oleh DBSS.",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#0D1B2A",
+  "theme_color": "#0D1B2A",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "assets/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
