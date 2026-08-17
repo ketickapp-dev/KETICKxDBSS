@@ -12,8 +12,10 @@
             --glass-border: rgba(255, 255, 255, 0.1);
             --neon-blue: #00f0ff;
             --neon-green: #00ff66;
+            --neon-orange: #ff9900;
             --text-main: #ffffff;
             --text-muted: #8b9bb4;
+            --danger: #ff3366;
         }
 
         body {
@@ -55,7 +57,6 @@
             transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
         }
 
-        /* MICRO-INTERACTIONS */
         .bento-card:hover {
             transform: translateY(-5px);
             border-color: rgba(0, 240, 255, 0.4);
@@ -71,17 +72,9 @@
             padding-bottom: 10px;
         }
 
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        .form-group label {
-            display: block;
-            font-size: 0.85em;
-            color: var(--text-muted);
-            margin-bottom: 5px;
-        }
-
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 0.85em; color: var(--text-muted); margin-bottom: 5px; }
+        
         .form-group input, .form-group textarea {
             width: 100%;
             background: rgba(0, 0, 0, 0.3);
@@ -90,7 +83,7 @@
             padding: 10px;
             border-radius: 8px;
             box-sizing: border-box;
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            transition: all 0.3s ease;
         }
 
         .form-group input:focus, .form-group textarea:focus {
@@ -99,29 +92,15 @@
             box-shadow: 0 0 8px rgba(0, 240, 255, 0.2);
         }
 
-        /* TABLE GRID UNTUK ITEM */
+        /* GRID JADUAL ITEM */
         .table-container {
-            grid-column: 1 / -1; /* Mengambil lebar penuh grid */
+            grid-column: 1 / -1;
             overflow-x: auto;
         }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-        }
-
-        table th, table td {
-            border: 1px solid var(--glass-border);
-            padding: 12px;
-            text-align: left;
-        }
-
-        table th {
-            background: rgba(0, 240, 255, 0.1);
-            color: var(--neon-blue);
-            font-weight: bold;
-        }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        table th, table td { border: 1px solid var(--glass-border); padding: 12px; text-align: left; }
+        table th { background: rgba(0, 240, 255, 0.1); color: var(--neon-blue); font-weight: bold; }
 
         .action-buttons {
             grid-column: 1 / -1;
@@ -131,62 +110,42 @@
             margin-top: 20px;
         }
 
-        button {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
+        button { padding: 12px 24px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: all 0.3s ease; }
+        
+        .btn-primary { background: linear-gradient(45deg, #00f0ff, #0080ff); color: #000; box-shadow: 0 0 15px rgba(0, 240, 255, 0.4); }
+        .btn-primary:hover { transform: scale(1.05); box-shadow: 0 0 25px rgba(0, 240, 255, 0.6); }
+        
+        .btn-success { background: linear-gradient(45deg, #00ff66, #00cc55); color: #000; box-shadow: 0 0 15px rgba(0, 255, 102, 0.4); }
+        .btn-success:hover { transform: scale(1.05); }
 
-        .btn-primary {
-            background: linear-gradient(45deg, #00f0ff, #0080ff);
-            color: #000;
-            box-shadow: 0 0 15px rgba(0, 240, 255, 0.4);
-        }
+        .btn-secondary { background: rgba(255, 255, 255, 0.1); color: var(--text-main); border: 1px solid var(--glass-border); }
+        .btn-secondary:hover { background: rgba(255, 255, 255, 0.2); }
+        
+        .btn-danger { background: rgba(255, 51, 102, 0.2); color: var(--danger); border: 1px solid var(--danger); padding: 5px 10px; font-size: 0.8em; }
 
-        .btn-primary:hover {
-            box-shadow: 0 0 25px rgba(0, 240, 255, 0.6);
-            transform: scale(1.05);
-        }
-
-        .btn-secondary {
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--text-main);
+        /* SENARAI REKOD PI (BENTO LIST) */
+        .record-list { grid-column: 1 / -1; margin-top: 30px; }
+        .record-item {
+            background: rgba(0, 0, 0, 0.3);
             border: 1px solid var(--glass-border);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
+        
+        .record-details h4 { margin: 0 0 5px 0; color: var(--neon-blue); }
+        .record-details p { margin: 0; font-size: 0.85em; color: var(--text-muted); }
 
-        .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        /* FORMAT CETAKAN (PDF) */
+        /* FORMAT CETAKAN PDF */
         @media print {
-            body {
-                background: white;
-                color: black;
-                padding: 0;
-            }
-            .bento-card {
-                border: none;
-                box-shadow: none;
-                background: none;
-                break-inside: avoid;
-            }
-            .action-buttons, .header {
-                display: none; /* Sembunyikan butang ketika cetak */
-            }
-            .form-group input, .form-group textarea {
-                border: none;
-                background: none;
-                color: black;
-                padding: 0;
-            }
-            table th {
-                background: #f0f0f0;
-                color: black;
-            }
+            body { background: white; color: black; padding: 0; }
+            .bento-card, .record-list { border: none; box-shadow: none; background: none; break-inside: avoid; }
+            .action-buttons, .header, .record-list { display: none; }
+            .form-group input, .form-group textarea { border: none; background: none; color: black; padding: 0; }
+            table th { background: #f0f0f0; color: black; }
         }
     </style>
 </head>
@@ -194,13 +153,13 @@
 
     <div class="header">
         <h1>PROFORMA INVOIS</h1>
-        <p style="color: var(--text-muted);">Tukar entiti sebutharga kepada pesanan B2B secara dinamik.</p>
+        <p style="color: var(--text-muted);">Pangkalan Data Proforma B2B & Cetakan PDF</p>
     </div>
 
     <div class="bento-grid">
         <div class="bento-card">
             <h3 class="card-title">Maklumat Klien (B2B)</h3>
-            <div class="form-group">
+            <input type="hidden" id="piID"> <div class="form-group">
                 <label>Nama Syarikat / Klien</label>
                 <input type="text" id="clientName" placeholder="Contoh: DBSS Technologies Sdn Bhd">
             </div>
@@ -222,7 +181,7 @@
             <h3 class="card-title">Rujukan Dokumen</h3>
             <div class="form-group">
                 <label>No. Proforma Invois</label>
-                <input type="text" id="piNumber" placeholder="Contoh: PI-2608001">
+                <input type="text" id="piNumber" placeholder="Contoh: PI-2608001" style="border-color: var(--neon-orange);">
             </div>
             <div class="form-group">
                 <label>No. Pesanan Belian (PO Klien)</label>
@@ -251,7 +210,8 @@
                     </tr>
                 </thead>
                 <tbody id="piTableBody">
-                    </tbody>
+                    <tr><td colspan="5" style="text-align:center;">Tiada data barangan.</td></tr>
+                </tbody>
                 <tfoot>
                     <tr>
                         <td colspan="4" style="text-align: right; font-weight: bold;">JUMLAH KESELURUHAN (RM):</td>
@@ -262,47 +222,70 @@
         </div>
 
         <div class="action-buttons">
-            <button class="btn-secondary" onclick="window.history.back()">Kembali</button>
+            <button class="btn-secondary" onclick="clearForm()">Kosongkan Borang</button>
+            <button class="btn-success" onclick="saveProforma()">Simpan Ke Pangkalan Data</button>
             <button class="btn-primary" onclick="window.print()">Jana PDF PI</button>
+        </div>
+
+        <div class="record-list bento-card">
+            <h3 class="card-title">Rekod Proforma Invois Tersimpan</h3>
+            <div id="savedPIList">
+                </div>
         </div>
     </div>
 
     <script>
-        // INIT SISTEM: Menyedut data memori dari Sebutharga (jika ada)
+        let currentItems = []; // Menyimpan array item sementara
+
+        // INIT SISTEM: Semak Draf Konversi atau Papar Rekod Sedia Ada
         window.onload = function() {
-            // Set tarikh hari ini
             document.getElementById('piDate').valueAsDate = new Date();
+            loadSavedPI(); // Render senarai PI yang dah disave
             
-            // Cuba tarik data sementara (Draft) dari perpindahan Sebutharga
+            // Periksa jika ada kemasukan transit dari Quotation
             const draftData = JSON.parse(localStorage.getItem('dbss_pi_transfer_draft'));
-            
             if (draftData) {
-                // Masukkan data rujukan
-                document.getElementById('qtReference').value = draftData.qtNumber || '';
-                
-                // Masukkan maklumat klien asal (pengguna boleh edit kemudian)
-                document.getElementById('clientName').value = draftData.clientName || '';
-                document.getElementById('clientPhone').value = draftData.clientPhone || '';
-                
-                // Render jadual
-                renderTable(draftData.items);
-            } else {
-                document.getElementById('piTableBody').innerHTML = '<tr><td colspan="5" style="text-align:center;">Tiada data barangan ditarik dari Sebutharga.</td></tr>';
+                loadDraftToForm(draftData);
+                // Padam draf lepas diguna untuk elak double-load
+                localStorage.removeItem('dbss_pi_transfer_draft'); 
             }
         };
 
+        // FUNGSI: Masukkan Draf Konversi ke Borang
+        function loadDraftToForm(data) {
+            document.getElementById('piID').value = data.id || Date.now().toString(); // Generate ID
+            document.getElementById('qtReference').value = data.qtNumber || '';
+            document.getElementById('clientName').value = data.clientName || '';
+            document.getElementById('clientPhone').value = data.clientPhone || '';
+            
+            // Auto Generate PI Number jika kosong
+            if(!document.getElementById('piNumber').value) {
+                const today = new Date();
+                const num = Math.floor(Math.random() * 1000);
+                document.getElementById('piNumber').value = `PI-${today.getFullYear()}${today.getMonth()+1}${today.getDate()}-${num}`;
+            }
+
+            currentItems = data.items || [];
+            renderTable(currentItems);
+            alert("Data Sebutharga berjaya dipindahkan. Sila kemaskini maklumat Syarikat B2B dan tekan Simpan.");
+        }
+
+        // FUNGSI: Papar Jadual
         function renderTable(items) {
             const tbody = document.getElementById('piTableBody');
             tbody.innerHTML = '';
             let grandTotal = 0;
 
-            if (!items || items.length === 0) return;
+            if (!items || items.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Tiada data barangan.</td></tr>';
+                document.getElementById('piTotal').innerText = '0.00';
+                return;
+            }
 
             items.forEach((item, index) => {
                 const total = item.qty * item.price;
                 grandTotal += total;
 
-                // Logik penarikan deskripsi dari database inventory utama jika diperlukan (rujukan kod lalu)
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>${index + 1}</td>
@@ -316,8 +299,127 @@
                 `;
                 tbody.appendChild(tr);
             });
-
             document.getElementById('piTotal').innerText = grandTotal.toFixed(2);
+        }
+
+        // FUNGSI: Simpan Ke Pangkalan Data (dbss_proforma)
+        function saveProforma() {
+            if (currentItems.length === 0) {
+                alert("Tiada item untuk disimpan!"); return;
+            }
+            if (!document.getElementById('clientName').value) {
+                alert("Sila masukkan Nama Syarikat/Klien."); return;
+            }
+
+            const piData = {
+                id: document.getElementById('piID').value || Date.now().toString(),
+                piNumber: document.getElementById('piNumber').value,
+                poNumber: document.getElementById('poNumber').value,
+                qtReference: document.getElementById('qtReference').value,
+                date: document.getElementById('piDate').value,
+                clientName: document.getElementById('clientName').value,
+                clientSSM: document.getElementById('clientSSM').value,
+                clientAddress: document.getElementById('clientAddress').value,
+                clientPhone: document.getElementById('clientPhone').value,
+                items: currentItems,
+                totalAmount: document.getElementById('piTotal').innerText
+            };
+
+            let db = JSON.parse(localStorage.getItem('dbss_proforma')) || [];
+            
+            // Cari jika ID dah wujud (Update)
+            const existingIndex = db.findIndex(pi => pi.id === piData.id);
+            if (existingIndex >= 0) {
+                db[existingIndex] = piData;
+                alert("Proforma Invois telah dikemaskini.");
+            } else {
+                db.push(piData); // Tambah Baru
+                alert("Proforma Invois berjaya disimpan!");
+            }
+
+            localStorage.setItem('dbss_proforma', JSON.stringify(db));
+            loadSavedPI(); // Refresh senarai
+        }
+
+        // FUNGSI: Papar Senarai PI Tersimpan
+        function loadSavedPI() {
+            const db = JSON.parse(localStorage.getItem('dbss_proforma')) || [];
+            const listContainer = document.getElementById('savedPIList');
+            listContainer.innerHTML = '';
+
+            if (db.length === 0) {
+                listContainer.innerHTML = '<p style="text-align:center; color:var(--text-muted);">Tiada rekod Proforma Invois.</p>';
+                return;
+            }
+
+            // Reverse susunan (yang paling baru di atas)
+            db.reverse().forEach(pi => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'record-item';
+                itemDiv.innerHTML = `
+                    <div class="record-details">
+                        <h4>${pi.piNumber} | ${pi.clientName}</h4>
+                        <p>PO Klien: ${pi.poNumber || 'N/A'} | RM ${pi.totalAmount} | Tarikh: ${pi.date}</p>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn-secondary" style="padding: 5px 10px; font-size: 0.85em;" onclick="editPI('${pi.id}')">Buka / Sunting</button>
+                        <button class="btn-danger" onclick="deletePI('${pi.id}')">Padam</button>
+                    </div>
+                `;
+                listContainer.appendChild(itemDiv);
+            });
+        }
+
+        // FUNGSI: Edit PI
+        function editPI(id) {
+            const db = JSON.parse(localStorage.getItem('dbss_proforma')) || [];
+            const pi = db.find(record => record.id === id);
+            if (pi) {
+                document.getElementById('piID').value = pi.id;
+                document.getElementById('piNumber').value = pi.piNumber;
+                document.getElementById('poNumber').value = pi.poNumber || '';
+                document.getElementById('qtReference').value = pi.qtReference || '';
+                document.getElementById('piDate').value = pi.date;
+                document.getElementById('clientName').value = pi.clientName;
+                document.getElementById('clientSSM').value = pi.clientSSM || '';
+                document.getElementById('clientAddress').value = pi.clientAddress || '';
+                document.getElementById('clientPhone').value = pi.clientPhone || '';
+                
+                currentItems = pi.items;
+                renderTable(currentItems);
+                
+                // Scroll up ke atas form
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        // FUNGSI: Padam PI
+        function deletePI(id) {
+            if (confirm("Adakah anda pasti untuk memadam rekod Proforma ini?")) {
+                let db = JSON.parse(localStorage.getItem('dbss_proforma')) || [];
+                db = db.filter(record => record.id !== id);
+                localStorage.setItem('dbss_proforma', JSON.stringify(db));
+                loadSavedPI();
+                clearForm();
+            }
+        }
+
+        // FUNGSI: Kosongkan Borang
+        function clearForm() {
+            document.getElementById('piID').value = '';
+            document.getElementById('piNumber').value = '';
+            document.getElementById('poNumber').value = '';
+            document.getElementById('qtReference').value = '';
+            document.getElementById('clientName').value = '';
+            document.getElementById('clientSSM').value = '';
+            document.getElementById('clientAddress').value = '';
+            document.getElementById('clientPhone').value = '';
+            currentItems = [];
+            renderTable(currentItems);
+            
+            // Generate nombor PI baharu untuk form kosong
+            const today = new Date();
+            document.getElementById('piNumber').value = `PI-${today.getFullYear()}${today.getMonth()+1}${today.getDate()}-${Math.floor(Math.random() * 1000)}`;
         }
     </script>
 </body>
