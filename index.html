@@ -10,14 +10,14 @@
     
     <style>
         :root {
-            --bg-dark: #0D1B2A;
-            --bg-card: #121212;
+            --bg-dark: #0b0f19;
+            --bg-card: rgba(20, 25, 40, 0.7);
             --text-main: #FFFFFF;
-            --text-muted: #A0AEC0;
-            --accent-blue: #007BFF;
-            --accent-lime: #39FF14;
-            --accent-orange: #FFA500;
-            --border-color: #2D3748;
+            --text-muted: #8b9bb4;
+            --accent-blue: #00f0ff;
+            --accent-lime: #00ff66;
+            --accent-orange: #ff9900;
+            --border-color: rgba(255, 255, 255, 0.1);
         }
 
         body {
@@ -29,18 +29,27 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background-image: radial-gradient(circle at center, #1a2a3a 0%, var(--bg-dark) 100%);
+            background-image: radial-gradient(circle at top right, rgba(0, 240, 255, 0.05), transparent 40%),
+                              radial-gradient(circle at bottom left, rgba(0, 255, 102, 0.05), transparent 40%);
         }
 
+        /* GLASSMORPHISM BENTO CARD */
         .login-container {
             background-color: var(--bg-card);
             padding: 40px;
-            border-radius: 12px;
+            border-radius: 16px;
             border: 1px solid var(--border-color);
             width: 100%;
             max-width: 400px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
             text-align: center;
+            backdrop-filter: blur(12px);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .login-container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 240, 255, 0.1);
         }
 
         .brand-logo {
@@ -52,7 +61,8 @@
         }
 
         .brand-logo span {
-            color: var(--accent-lime); /* Ikon kursor klik ganti 'i' atau titik */
+            color: var(--accent-lime);
+            text-shadow: 0 0 10px rgba(0, 255, 102, 0.4);
         }
 
         .system-name {
@@ -60,6 +70,7 @@
             font-weight: 700;
             letter-spacing: 1px;
             margin-bottom: 5px;
+            color: var(--accent-blue);
         }
 
         .tagline {
@@ -83,12 +94,13 @@
             letter-spacing: 1px;
         }
 
+        /* MICRO-INTERACTIONS PADA INPUT */
         .form-group input {
             width: 100%;
             padding: 14px;
-            background-color: #0D1B2A;
+            background-color: rgba(0, 0, 0, 0.4);
             border: 1px solid var(--border-color);
-            border-radius: 6px;
+            border-radius: 8px;
             color: var(--accent-lime);
             font-family: 'JetBrains Mono', monospace;
             font-size: 14px;
@@ -99,32 +111,37 @@
         .form-group input:focus {
             outline: none;
             border-color: var(--accent-blue);
-            box-shadow: 0 0 8px rgba(0, 123, 255, 0.3);
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
+            transform: scale(1.02);
         }
 
         .form-group input::placeholder {
             color: #4A5568;
         }
 
+        /* MICRO-INTERACTIONS PADA BUTANG */
         .btn-submit {
             width: 100%;
-            background-color: var(--accent-blue);
-            color: var(--text-main);
+            background: linear-gradient(45deg, #00f0ff, #0080ff);
+            color: #000;
             border: none;
             padding: 15px;
             font-size: 14px;
             font-weight: 700;
-            border-radius: 6px;
+            border-radius: 8px;
             cursor: pointer;
             font-family: 'Inter', sans-serif;
             text-transform: uppercase;
             letter-spacing: 1px;
-            transition: background-color 0.3s ease;
+            transition: all 0.3s ease;
             margin-top: 10px;
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
         }
 
         .btn-submit:hover {
-            background-color: #0056b3;
+            transform: translateY(-3px);
+            box-shadow: 0 0 25px rgba(0, 240, 255, 0.6);
+            background: linear-gradient(45deg, #00ffff, #00aaff);
         }
 
         .status-msg {
@@ -132,7 +149,14 @@
             font-size: 12px;
             font-family: 'JetBrains Mono', monospace;
             color: var(--accent-orange);
-            display: none; /* Disembunyikan secara lalai */
+            display: none;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        
+        .status-msg.show {
+            display: block;
+            opacity: 1;
         }
     </style>
 </head>
@@ -140,7 +164,7 @@
 
     <div class="login-container">
         <div class="brand-logo">dbss<span>&#8599;</span></div>
-        <div class="system-name">DBSS OS | COMMAND YOUR DATA</div>
+        <div class="system-name">DBSS OS | COMMAND CENTER</div>
         <div class="tagline">Satu Ketikan, Seribu Solusi.</div>
 
         <form id="loginForm">
@@ -162,29 +186,28 @@
 
     <script>
         document.getElementById('loginForm').addEventListener('submit', function(e) {
-            e.preventDefault(); // Elak halaman dari refresh
+            e.preventDefault(); 
             
             const user = document.getElementById('username').value;
             const pass = document.getElementById('password').value;
             const statusMsg = document.getElementById('statusMessage');
 
-            // Logik sementara sebelum kita bina backend (Acode -> Firebase dll)
-            // Untuk fasa ini, apa-apa input akan terus ke dashboard
+            // Logik sementara sebelum integrasi backend
             if (user !== "" && pass !== "") {
                 // Berjaya
                 statusMsg.style.color = "var(--accent-lime)";
-                statusMsg.innerText = "Akses Dibenarkan. Mengalihkan...";
-                statusMsg.style.display = "block";
+                statusMsg.innerText = "[✓] Akses Dibenarkan. Menghubungkan ke pelayan...";
+                statusMsg.classList.add('show');
                 
-                // Alih ke dashboard selepas 1 saat
+                // Alih ke dashboard selepas 1.5 saat untuk paparan animasi
                 setTimeout(() => {
                     window.location.href = "dashboard.html";
-                }, 1000);
+                }, 1500);
             } else {
                 // Gagal
                 statusMsg.style.color = "var(--accent-orange)";
-                statusMsg.innerText = "Ralat Operasi: Input tidak lengkap.";
-                statusMsg.style.display = "block";
+                statusMsg.innerText = "[!] Ralat Operasi: Input tidak lengkap.";
+                statusMsg.classList.add('show');
             }
         });
     </script>
