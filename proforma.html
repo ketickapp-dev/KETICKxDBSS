@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proforma Invois | DBSS OS</title>
+    <style>
+        /* TEMA CYBER & GLASSMORPHISM + BENTO GRID */
+        :root {
+            --bg-color: #0b0f19;
+            --glass-bg: rgba(20, 25, 40, 0.6);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --neon-blue: #00f0ff;
+            --neon-green: #00ff66;
+            --text-main: #ffffff;
+            --text-muted: #8b9bb4;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-image: radial-gradient(circle at top right, rgba(0, 240, 255, 0.05), transparent 40%),
+                              radial-gradient(circle at bottom left, rgba(0, 255, 102, 0.05), transparent 40%);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: var(--neon-blue);
+            text-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
+            margin: 0;
+        }
+
+        /* SUSUN ATUR BENTO GRID */
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .bento-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        /* MICRO-INTERACTIONS */
+        .bento-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(0, 240, 255, 0.4);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-title {
+            color: var(--neon-green);
+            font-size: 1.1em;
+            margin-top: 0;
+            margin-bottom: 15px;
+            border-bottom: 1px solid var(--glass-border);
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85em;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+        }
+
+        .form-group input, .form-group textarea {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--glass-border);
+            color: var(--text-main);
+            padding: 10px;
+            border-radius: 8px;
+            box-sizing: border-box;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .form-group input:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 8px rgba(0, 240, 255, 0.2);
+        }
+
+        /* TABLE GRID UNTUK ITEM */
+        .table-container {
+            grid-column: 1 / -1; /* Mengambil lebar penuh grid */
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        table th, table td {
+            border: 1px solid var(--glass-border);
+            padding: 12px;
+            text-align: left;
+        }
+
+        table th {
+            background: rgba(0, 240, 255, 0.1);
+            color: var(--neon-blue);
+            font-weight: bold;
+        }
+
+        .action-buttons {
+            grid-column: 1 / -1;
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #00f0ff, #0080ff);
+            color: #000;
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.4);
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 0 25px rgba(0, 240, 255, 0.6);
+            transform: scale(1.05);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-main);
+            border: 1px solid var(--glass-border);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* FORMAT CETAKAN (PDF) */
+        @media print {
+            body {
+                background: white;
+                color: black;
+                padding: 0;
+            }
+            .bento-card {
+                border: none;
+                box-shadow: none;
+                background: none;
+                break-inside: avoid;
+            }
+            .action-buttons, .header {
+                display: none; /* Sembunyikan butang ketika cetak */
+            }
+            .form-group input, .form-group textarea {
+                border: none;
+                background: none;
+                color: black;
+                padding: 0;
+            }
+            table th {
+                background: #f0f0f0;
+                color: black;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>PROFORMA INVOIS</h1>
+        <p style="color: var(--text-muted);">Tukar entiti sebutharga kepada pesanan B2B secara dinamik.</p>
+    </div>
+
+    <div class="bento-grid">
+        <div class="bento-card">
+            <h3 class="card-title">Maklumat Klien (B2B)</h3>
+            <div class="form-group">
+                <label>Nama Syarikat / Klien</label>
+                <input type="text" id="clientName" placeholder="Contoh: DBSS Technologies Sdn Bhd">
+            </div>
+            <div class="form-group">
+                <label>No. Pendaftaran (SSM)</label>
+                <input type="text" id="clientSSM" placeholder="Contoh: 1234567-X">
+            </div>
+            <div class="form-group">
+                <label>Alamat Syarikat</label>
+                <textarea id="clientAddress" rows="3" placeholder="Alamat penuh..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>No. Telefon</label>
+                <input type="text" id="clientPhone" placeholder="Contoh: 012-3456789">
+            </div>
+        </div>
+
+        <div class="bento-card">
+            <h3 class="card-title">Rujukan Dokumen</h3>
+            <div class="form-group">
+                <label>No. Proforma Invois</label>
+                <input type="text" id="piNumber" placeholder="Contoh: PI-2608001">
+            </div>
+            <div class="form-group">
+                <label>No. Pesanan Belian (PO Klien)</label>
+                <input type="text" id="poNumber" placeholder="Contoh: PO-9928" style="border-color: var(--neon-blue);">
+            </div>
+            <div class="form-group">
+                <label>Rujukan Sebutharga Asal</label>
+                <input type="text" id="qtReference" placeholder="Contoh: QT-1001" readonly style="opacity: 0.7;">
+            </div>
+            <div class="form-group">
+                <label>Tarikh Keluaran</label>
+                <input type="date" id="piDate">
+            </div>
+        </div>
+
+        <div class="bento-card table-container">
+            <h3 class="card-title">Senarai Barangan & Servis</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th width="5%">Bil</th>
+                        <th width="50%">Deskripsi Item</th>
+                        <th width="10%">Kuantiti</th>
+                        <th width="15%">Harga Unit (RM)</th>
+                        <th width="20%">Jumlah (RM)</th>
+                    </tr>
+                </thead>
+                <tbody id="piTableBody">
+                    </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="4" style="text-align: right; font-weight: bold;">JUMLAH KESELURUHAN (RM):</td>
+                        <td id="piTotal" style="font-weight: bold; color: var(--neon-green);">0.00</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <div class="action-buttons">
+            <button class="btn-secondary" onclick="window.history.back()">Kembali</button>
+            <button class="btn-primary" onclick="window.print()">Jana PDF PI</button>
+        </div>
+    </div>
+
+    <script>
+        // INIT SISTEM: Menyedut data memori dari Sebutharga (jika ada)
+        window.onload = function() {
+            // Set tarikh hari ini
+            document.getElementById('piDate').valueAsDate = new Date();
+            
+            // Cuba tarik data sementara (Draft) dari perpindahan Sebutharga
+            const draftData = JSON.parse(localStorage.getItem('dbss_pi_transfer_draft'));
+            
+            if (draftData) {
+                // Masukkan data rujukan
+                document.getElementById('qtReference').value = draftData.qtNumber || '';
+                
+                // Masukkan maklumat klien asal (pengguna boleh edit kemudian)
+                document.getElementById('clientName').value = draftData.clientName || '';
+                document.getElementById('clientPhone').value = draftData.clientPhone || '';
+                
+                // Render jadual
+                renderTable(draftData.items);
+            } else {
+                document.getElementById('piTableBody').innerHTML = '<tr><td colspan="5" style="text-align:center;">Tiada data barangan ditarik dari Sebutharga.</td></tr>';
+            }
+        };
+
+        function renderTable(items) {
+            const tbody = document.getElementById('piTableBody');
+            tbody.innerHTML = '';
+            let grandTotal = 0;
+
+            if (!items || items.length === 0) return;
+
+            items.forEach((item, index) => {
+                const total = item.qty * item.price;
+                grandTotal += total;
+
+                // Logik penarikan deskripsi dari database inventory utama jika diperlukan (rujukan kod lalu)
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>
+                        <strong>${item.name}</strong><br>
+                        <span style="font-size: 0.85em; color: var(--text-muted);">${item.desc || ''}</span>
+                    </td>
+                    <td>${item.qty}</td>
+                    <td>${item.price.toFixed(2)}</td>
+                    <td>${total.toFixed(2)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('piTotal').innerText = grandTotal.toFixed(2);
+        }
+    </script>
+</body>
+</html>
