@@ -64,14 +64,6 @@
         .record-details h4 { margin: 0 0 5px 0; color: var(--neon-blue); }
         .record-details p { margin: 0; font-size: 0.85em; color: var(--text-muted); }
 
-        @media print {
-            body { background: white; color: black; padding: 0; }
-            .bento-card, .record-list { border: none; box-shadow: none; background: none; break-inside: avoid; }
-            .action-buttons, .header, .record-list, .liquid-select-wrapper { display: none; }
-            .form-group input, .form-group textarea { border: none; background: none; color: black; padding: 0; }
-            table th { background: #f0f0f0; color: black; }
-        }
-        
         /* CSS LACI BAWAH GLOBAL */
         .bottom-sheet-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px); z-index: 9998; opacity: 0; pointer-events: none; transition: 0.3s ease; }
         .bottom-sheet-overlay.show { opacity: 1; pointer-events: auto; }
@@ -93,6 +85,36 @@
         .nav-item.active { color: var(--neon-green); transform: translateY(-5px);}
         .nav-item:hover:not(.active) { color: #fff; transform: translateY(-3px);}
         .nav-item svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+        /* FORMAT CETAKAN PDF (PROFORMA KHAS) */
+        #print-section { display: none; }
+        @media print {
+            body { background: white !important; color: black !important; padding: 0; margin: 0; }
+            .header, .bento-grid, .bottom-nav, .bottom-sheet-overlay, .bottom-sheet { display: none !important; }
+            
+            #print-section { display: block !important; padding: 10mm 15mm; }
+            .print-header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #000; padding-bottom: 20px; margin-bottom: 30px; }
+            .print-biz-info h1 { margin: 0 0 5px 0; font-size: 24px; font-weight: 700; color: #000; }
+            .print-biz-info p { margin: 2px 0; font-size: 12px; color: #333; white-space: pre-wrap; line-height: 1.4; }
+            .print-title { text-align: right; }
+            .print-title h2 { font-size: 24px; margin: 0 0 5px 0; color: #000; letter-spacing: 1px; text-transform: uppercase; }
+            .print-title p { margin: 0; font-size: 12px; font-weight: bold; }
+            
+            .print-client-row { display: flex; justify-content: space-between; margin-bottom: 30px; }
+            .print-client { width: 60%; }
+            .print-client h3 { margin: 0 0 10px 0; font-size: 14px; background: #f2f2f2; padding: 5px 10px; border-left: 3px solid #000; }
+            .print-client p { margin: 4px 0; font-size: 13px; line-height: 1.4; white-space: pre-wrap; }
+            
+            .print-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 13px; }
+            .print-table th, .print-table td { border: 1px solid #ddd; padding: 10px; text-align: left; color: #000; word-break: break-word !important; white-space: normal !important; }
+            .print-table th { background-color: #333 !important; color: #fff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .print-table td.money { text-align: right; }
+            
+            .print-total-section { display: flex; justify-content: flex-end; margin-top: 20px; }
+            .print-total-box { width: 300px; border: 1px solid #ddd; }
+            .print-total-row { display: flex; justify-content: space-between; padding: 10px; font-size: 14px; }
+            .print-total-row.grand { background: #f2f2f2; font-weight: bold; font-size: 16px; border-top: 1px solid #ddd; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        }
     </style>
 </head>
 <body>
@@ -181,12 +203,62 @@
         <div class="action-buttons">
             <button class="btn-secondary" onclick="clearForm()">Kosongkan Borang</button>
             <button class="btn-success" onclick="saveProforma()">Simpan Ke Pangkalan Data</button>
-            <button class="btn-primary" onclick="window.print()">Jana PDF PI</button>
+            <button class="btn-primary" onclick="generateProformaPDF()">Jana PDF PI</button>
         </div>
 
         <div class="record-list bento-card">
             <h3 class="card-title">Rekod Proforma Invois Tersimpan</h3>
             <div id="savedPIList"></div>
+        </div>
+    </div>
+
+    <!-- RUANGAN CETAKAN PDF (DISUNTIK DARI BUSINESS PROFILE) -->
+    <div id="print-section">
+        <div class="print-header">
+            <div class="print-biz-info">
+                <h1 id="pBizName">NAMA SYARIKAT</h1>
+                <p id="pBizSSM">SSM: -</p>
+                <p id="pBizAddress">Alamat: -</p>
+                <p id="pBizPhone">Tel: -</p>
+            </div>
+            <div class="print-title">
+                <h2>PROFORMA INVOICE</h2>
+                <p>No. Dokumen: <span id="pInvNo" style="color: #FF3B30;"></span></p>
+                <p>Tarikh: <span id="pDate"></span></p>
+                <p>Ruj. Quotation: <span id="pQTRef"></span></p>
+                <p>No. PO Klien: <span id="pPOKlien"></span></p>
+            </div>
+        </div>
+        
+        <div class="print-client-row">
+            <div class="print-client">
+                <h3>DI BIL KEPADA:</h3>
+                <p><strong id="pClientName">Nama Klien</strong></p>
+                <p id="pClientPhone">No Tel</p>
+                <p id="pClientAddress">Alamat</p>
+            </div>
+        </div>
+        
+        <table class="print-table">
+            <thead>
+                <tr>
+                    <th style="width: 5%; text-align:center;">Bil</th>
+                    <th style="width: 55%;">Perkara / Deskripsi Perkakasan</th>
+                    <th style="width: 10%; text-align: center;">Kuantiti</th>
+                    <th style="width: 15%; text-align: right;">Harga (RM)</th>
+                    <th style="width: 15%; text-align: right;">Jumlah (RM)</th>
+                </tr>
+            </thead>
+            <tbody id="pPrintTableBody"></tbody>
+        </table>
+        
+        <div class="print-total-section">
+            <div class="print-total-box">
+                <div class="print-total-row grand">
+                    <span>JUMLAH KESELURUHAN</span>
+                    <span id="pGrandTotalText">RM 0.00</span>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -208,7 +280,6 @@
         </div>
     </div>
 
-    <!-- BOTTOM NAV BAR PINTASAN LACI -->
     <nav class="bottom-nav">
         <a href="dashboard.html" class="nav-item">
             <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
@@ -226,14 +297,20 @@
 
     <script>
         let currentItems = []; 
+        let bizProfile = {}; // Objek tetapan syarikat
+        let grandTotalFloat = 0;
 
         window.onload = function() {
             document.getElementById('piDate').valueAsDate = new Date();
+            
+            // Muat turun Profil Perniagaan dari Settings
+            const savedProfile = localStorage.getItem('dbss_business_profile');
+            if (savedProfile) { bizProfile = JSON.parse(savedProfile); }
+
             loadCRMToDropdown(); 
-            loadQuotationsToDropdown(); // FUNGSI TARIK SEBUTHARGA DIAKTIFKAN
+            loadQuotationsToDropdown();
             loadSavedPI(); 
             
-            // LALUAN 1: SINKRONISASI SEBUTHARGA DARI BUTANG CONVERT (SEBUTHARGA.HTML)
             let draftData = JSON.parse(localStorage.getItem('dbss_pi_transfer_draft'));
             let tokenKey = 'dbss_pi_transfer_draft';
 
@@ -277,32 +354,24 @@
         function loadQuotationsToDropdown() {
             const qtData = JSON.parse(localStorage.getItem('dbss_saved_quotes')) || [];
             const select = document.getElementById('qtDropdown');
-            
             select.innerHTML = '<option value="">-- Taip / Pilih Rekod Sebutharga --</option>';
 
             qtData.forEach(qt => {
                 const opt = document.createElement('option');
                 opt.value = qt.ref;
-                // Paparan ID + Nama + Harga
                 opt.text = `${qt.ref} | ${qt.clientName} (RM ${parseFloat(qt.total).toFixed(2)})`;
-                
-                // Simpan data di latar belakang
                 opt.dataset.ref = qt.ref || '';
                 opt.dataset.name = qt.clientName || '';
                 opt.dataset.phone = qt.clientPhone || '';
                 opt.dataset.address = qt.clientAddress || '';
                 opt.dataset.items = JSON.stringify(qt.items || []);
-                
                 select.appendChild(opt);
             });
-
-            // Gunakan enjin cecair khusus untuk memproses Sebutharga
             setupLiquidSelectQT(select);
         }
 
         function setupLiquidSelectQT(select) {
             select.style.display = 'none'; 
-            
             const existingWrapper = document.getElementById('liquid-wrap-' + select.id);
             if (existingWrapper) existingWrapper.remove();
 
@@ -312,7 +381,7 @@
             
             const header = document.createElement('div'); 
             header.className = 'liquid-header';
-            header.style.color = "var(--neon-orange)"; // Warna tema QT
+            header.style.color = "var(--neon-orange)";
             header.innerHTML = `<span>${select.options[0].text}</span><span style="font-size:10px;">▼</span>`;
             
             const list = document.createElement('div'); 
@@ -328,18 +397,14 @@
                         header.querySelector('span').innerText = opt.text;
                         wrapper.classList.remove('open');
                         
-                        // Eksekusi Tarikan Data Sebutharga ke dalam Borang
                         if(opt.value !== "") {
                             document.getElementById('qtReference').value = opt.dataset.ref || '';
                             document.getElementById('clientName').value = opt.dataset.name || '';
                             document.getElementById('clientPhone').value = opt.dataset.phone || '';
                             if(opt.dataset.address) document.getElementById('clientAddress').value = opt.dataset.address;
-                            
-                            // Tarik senarai item dan render jadual
                             currentItems = JSON.parse(opt.dataset.items || '[]');
                             renderTable(currentItems);
                         }
-                        
                         list.querySelectorAll('.liquid-item').forEach(i => i.classList.remove('clicked'));
                     }, 250);
                 });
@@ -355,34 +420,29 @@
             select.parentNode.insertBefore(wrapper, select.nextSibling);
         }
 
-
         // ==========================================
         // ENJIN TARIKAN DATA CRM (KLIEN B2B)
         // ==========================================
         function loadCRMToDropdown() {
             const crmData = JSON.parse(localStorage.getItem('dbss_crm_database')) || [];
             const select = document.getElementById('crmDropdown');
-            
             select.innerHTML = '<option value="">-- Taip / Pilih Dari Senarai CRM --</option>';
 
             crmData.forEach(client => {
                 const opt = document.createElement('option');
                 opt.value = client.id;
                 opt.text = client.name + (client.type === 'b2b' || client.type === 'B2B' || client.ssm ? ' (B2B)' : '');
-                
                 opt.dataset.name = client.name || '';
                 opt.dataset.phone = client.phone || '';
                 opt.dataset.address = client.address || '';
                 opt.dataset.ssm = client.ssm || '';
                 select.appendChild(opt);
             });
-
             setupLiquidSelectCRM(select);
         }
 
         function setupLiquidSelectCRM(select) {
             select.style.display = 'none'; 
-            
             const existingWrapper = document.getElementById('liquid-wrap-' + select.id);
             if (existingWrapper) existingWrapper.remove();
 
@@ -412,8 +472,12 @@
                             document.getElementById('clientPhone').value = opt.dataset.phone || '';
                             document.getElementById('clientAddress').value = opt.dataset.address || '';
                             document.getElementById('clientSSM').value = opt.dataset.ssm || '';
+                        } else {
+                            document.getElementById('clientName').value = '';
+                            document.getElementById('clientPhone').value = '';
+                            document.getElementById('clientAddress').value = '';
+                            document.getElementById('clientSSM').value = '';
                         }
-                        
                         list.querySelectorAll('.liquid-item').forEach(i => i.classList.remove('clicked'));
                     }, 250);
                 });
@@ -430,16 +494,16 @@
         }
 
         // ==========================================
-        // PAPARAN & SIMPANAN DATA
+        // PAPARAN JADUAL BENTO UI
         // ==========================================
         function renderTable(items) {
-            const tbody = document.getElementById('piTableBody'); tbody.innerHTML = ''; let grandTotal = 0;
+            const tbody = document.getElementById('piTableBody'); tbody.innerHTML = ''; grandTotalFloat = 0;
             if (!items || items.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Tiada data barangan.</td></tr>';
                 document.getElementById('piTotal').innerText = '0.00'; return;
             }
             items.forEach((item, index) => {
-                const total = item.qty * item.price; grandTotal += total;
+                const total = item.qty * item.price; grandTotalFloat += total;
                 let printItemName = item.displayType === 'subitem' 
                     ? `<span style="padding-left:15px; color:var(--text-muted);">↳ ${item.name}</span>` 
                     : `<strong>${item.name}</strong>`;
@@ -451,9 +515,12 @@
                     <td>${item.qty}</td><td>${printPrice}</td><td>${printSub}</td>`;
                 tbody.appendChild(tr);
             });
-            document.getElementById('piTotal').innerText = grandTotal.toFixed(2);
+            document.getElementById('piTotal').innerText = grandTotalFloat.toFixed(2);
         }
 
+        // ==========================================
+        // SIMPAN & PAPAR PI
+        // ==========================================
         function saveProforma() {
             if (currentItems.length === 0) return alert("Tiada item untuk disimpan!"); 
             if (!document.getElementById('clientName').value) return alert("Sila masukkan Nama Syarikat/Klien."); 
@@ -525,14 +592,76 @@
             document.getElementById('clientName').value = ''; document.getElementById('clientSSM').value = '';
             document.getElementById('clientAddress').value = ''; document.getElementById('clientPhone').value = '';
             currentItems = []; renderTable(currentItems);
-            
             const today = new Date(); document.getElementById('piNumber').value = `PI-${today.getFullYear()}${today.getMonth()+1}${today.getDate()}-${Math.floor(Math.random() * 1000)}`;
             
-            // Kosongkan label dropdown
             const crmSelect = document.getElementById('crmDropdown');
-            if(crmSelect) { crmSelect.value = ''; document.querySelector('#liquid-wrap-crmDropdown .liquid-header span').innerText = '-- Taip / Pilih Dari Senarai CRM --'; }
+            if(crmSelect) {
+                crmSelect.value = '';
+                const liquidHeader = document.querySelector('#liquid-wrap-crmDropdown .liquid-header span');
+                if (liquidHeader) liquidHeader.innerText = '-- Taip / Pilih Dari Senarai CRM --';
+            }
             const qtSelect = document.getElementById('qtDropdown');
-            if(qtSelect) { qtSelect.value = ''; document.querySelector('#liquid-wrap-qtDropdown .liquid-header span').innerText = '-- Taip / Pilih Rekod Sebutharga --'; }
+            if(qtSelect) {
+                qtSelect.value = '';
+                const liquidHeaderQT = document.querySelector('#liquid-wrap-qtDropdown .liquid-header span');
+                if (liquidHeaderQT) liquidHeaderQT.innerText = '-- Taip / Pilih Rekod Sebutharga --';
+            }
+        }
+
+        // ==========================================
+        // ENJIN CETAKAN PDF (JANA PROFORMA)
+        // ==========================================
+        function generateProformaPDF() {
+            if(currentItems.length === 0) return alert("Sila isikan sekurang-kurangnya satu barangan untuk dicetak.");
+            
+            // 1. Suntik Data Profil Perniagaan dari Settings/Business
+            document.getElementById('pBizName').innerText = bizProfile.name || "NAMA SYARIKAT";
+            document.getElementById('pBizSSM').innerText = "SSM: " + (bizProfile.ssm || "-");
+            document.getElementById('pBizAddress').innerText = bizProfile.address || "-";
+            document.getElementById('pBizPhone').innerText = "Tel: " + (bizProfile.phone || "-");
+
+            // 2. Suntik Data Klien & Rujukan
+            document.getElementById('pInvNo').innerText = document.getElementById('piNumber').value || "-";
+            document.getElementById('pDate').innerText = document.getElementById('piDate').value || "-";
+            document.getElementById('pQTRef').innerText = document.getElementById('qtReference').value || "-";
+            document.getElementById('pPOKlien').innerText = document.getElementById('poNumber').value || "-";
+            
+            document.getElementById('pClientName').innerText = document.getElementById('clientName').value || "-";
+            document.getElementById('pClientPhone').innerText = document.getElementById('clientPhone').value || "";
+            document.getElementById('pClientAddress').innerText = document.getElementById('clientAddress').value || "";
+
+            // 3. Bina Jadual Cetakan
+            const pTableBody = document.getElementById('pPrintTableBody');
+            pTableBody.innerHTML = '';
+            
+            // Gunakan pangkalan inventori untuk padanan fail deskripsi Fuzzy jika ia kosong
+            const invDb = JSON.parse(localStorage.getItem('dbss_inventory')) || [];
+
+            currentItems.forEach((item, index) => {
+                let description = item.desc || "";
+                
+                if (!description) {
+                    const matchedItem = invDb.find(dbItem => item.name.includes(dbItem.id) || item.name === dbItem.name);
+                    if (matchedItem && matchedItem.desc) { description = matchedItem.desc; item.desc = description; }
+                }
+
+                let descHtml = description ? `<div style="font-size: 11px; color: #555; margin-top: 4px; white-space: pre-wrap; word-break: break-word !important; line-height: 1.4;">${description}</div>` : "";
+
+                let printItemName = item.displayType === 'subitem' 
+                    ? `<div style="padding-left:15px;"><span style="color:#475569;">↳ ${item.name}</span>${descHtml}</div>` 
+                    : `<div><strong>${item.name}</strong>${descHtml}</div>`;
+                
+                let printPrice = item.displayType === 'subitem' ? `<em style="color:#94A3B8; font-size:10px;">FOC</em>` : item.price.toFixed(2);
+                let printSub = item.displayType === 'subitem' ? `-` : `<strong>${(item.qty * item.price).toFixed(2)}</strong>`;
+
+                pTableBody.insertRow().innerHTML = `<td style="text-align:center;">${index + 1}</td><td>${printItemName}</td><td style="text-align:center;">${item.qty}</td><td class="money">${printPrice}</td><td class="money">${printSub}</td>`;
+            });
+
+            // 4. Pengiraan Total
+            document.getElementById('pGrandTotalText').innerText = "RM " + grandTotalFloat.toFixed(2);
+
+            // 5. Cetak
+            setTimeout(() => { window.print(); }, 300);
         }
     </script>
 </body>
