@@ -354,13 +354,13 @@
 
     <script>
         let currentItems = []; 
-        let bizProfile = {}; 
+        let bizProfile = {}; // Objek tetapan syarikat
         let grandTotalFloat = 0;
 
         window.onload = function() {
             document.getElementById('piDate').valueAsDate = new Date();
             
-            // 1. Muat turun Profil Perniagaan dari Settings
+            // Muat turun Profil Perniagaan dari Settings
             const savedProfile = localStorage.getItem('dbss_business_profile');
             if (savedProfile) { bizProfile = JSON.parse(savedProfile); }
 
@@ -392,6 +392,7 @@
                 renderTable(currentItems);
                 
                 localStorage.removeItem(tokenKey); 
+                alert("Data transit berjaya disegerakkan.");
             }
         };
 
